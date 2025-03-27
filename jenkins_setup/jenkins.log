@@ -1,0 +1,299 @@
+Running from: /home/javad/dev/jenkins_setup/jenkins.war
+webroot: /home/javad/dev/jenkins/war
+2025-03-25 05:31:45.568+0000 [id=1]	INFO	winstone.Logger#logInternal: Beginning extraction from war file
+2025-03-25 05:31:45.700+0000 [id=1]	WARNING	o.e.j.ee9.nested.ContextHandler#setContextPath: Empty contextPath
+2025-03-25 05:31:45.850+0000 [id=1]	INFO	org.eclipse.jetty.server.Server#doStart: jetty-12.0.17; built: 2025-03-03T13:15:05.903Z; git: 14d19c268e4cb09afc312b5255a4cbb7a95c5cb6; jvm 17.0.14+7-Debian-1deb12u1
+2025-03-25 05:31:47.246+0000 [id=1]	INFO	o.e.j.e.w.StandardDescriptorProcessor#visitServlet: NO JSP Support for /, did not find org.eclipse.jetty.ee9.jsp.JettyJspServlet
+2025-03-25 05:31:47.363+0000 [id=1]	INFO	o.e.j.s.DefaultSessionIdManager#doStart: Session workerName=node0
+2025-03-25 05:31:50.053+0000 [id=1]	INFO	hudson.WebAppMain#contextInitialized: Jenkins home directory: /home/javad/dev/jenkins found at: EnvVars.masterEnvVars.get("JENKINS_HOME")
+2025-03-25 05:31:51.613+0000 [id=1]	INFO	o.e.j.s.handler.ContextHandler#doStart: Started oeje9n.ContextHandler$CoreContextHandler@1051817b{Jenkins v2.502,/,b=file:///home/javad/dev/jenkins/war/,a=AVAILABLE,h=oeje9n.ContextHandler$CoreContextHandler$CoreToNestedHandler@35293c05{STARTED}}
+2025-03-25 05:31:51.626+0000 [id=1]	INFO	o.e.j.server.AbstractConnector#doStart: Started ServerConnector@50305a{HTTP/1.1, (http/1.1)}{0.0.0.0:32769}
+2025-03-25 05:31:51.730+0000 [id=1]	INFO	org.eclipse.jetty.server.Server#doStart: Started oejs.Server@79efed2d{STARTING}[12.0.17,sto=0] @11273ms
+2025-03-25 05:31:51.731+0000 [id=25]	INFO	winstone.Logger#logInternal: Winstone Servlet Engine running: controlPort=disabled
+2025-03-25 05:31:52.599+0000 [id=24]	INFO	jenkins.model.Jenkins#<init>: Starting version 2.502
+2025-03-25 05:31:52.814+0000 [id=32]	INFO	jenkins.InitReactorRunner$1#onAttained: Started initialization
+2025-03-25 05:31:55.088+0000 [id=36]	INFO	jenkins.InitReactorRunner$1#onAttained: Listed all plugins
+2025-03-25 05:32:10.567+0000 [id=30]	INFO	jenkins.InitReactorRunner$1#onAttained: Prepared all plugins
+2025-03-25 05:32:10.690+0000 [id=35]	INFO	jenkins.InitReactorRunner$1#onAttained: Started all plugins
+2025-03-25 05:32:10.694+0000 [id=33]	INFO	jenkins.InitReactorRunner$1#onAttained: Augmented all extensions
+2025-03-25 05:32:12.091+0000 [id=32]	INFO	h.p.b.g.GlobalTimeOutConfiguration#load: global timeout not set
+2025-03-25 05:32:15.870+0000 [id=35]	INFO	jenkins.InitReactorRunner$1#onAttained: System config loaded
+2025-03-25 05:32:15.870+0000 [id=35]	INFO	jenkins.InitReactorRunner$1#onAttained: System config adapted
+2025-03-25 05:32:15.949+0000 [id=31]	INFO	jenkins.InitReactorRunner$1#onAttained: Loaded all jobs
+2025-03-25 05:32:15.956+0000 [id=31]	INFO	jenkins.InitReactorRunner$1#onAttained: Configuration for all jobs updated
+2025-03-25 05:32:16.036+0000 [id=35]	INFO	jenkins.InitReactorRunner$1#onAttained: Completed initialization
+2025-03-25 05:32:16.088+0000 [id=24]	INFO	hudson.lifecycle.Lifecycle#onReady: Jenkins is fully up and running
+2025-03-25 05:48:14.054+0000 [id=15]	INFO	hudson.PluginManager#install: Starting installation of a batch of 1 plugins plus their dependencies
+2025-03-25 05:48:15.287+0000 [id=133]	INFO	h.model.UpdateCenter$DownloadJob#run: Starting the installation of description-setter on behalf of javad
+2025-03-25 05:48:15.288+0000 [id=133]	INFO	h.m.UpdateCenter$UpdateCenterConfiguration#download: Downloading description-setter
+2025-03-25 05:48:16.076+0000 [id=133]	INFO	h.model.UpdateCenter$DownloadJob#run: Installation successful: description-setter
+2025-03-25 05:48:16.076+0000 [id=133]	INFO	h.m.UpdateCenter$CompleteBatchJob#run: Completing installing of plugin batch…
+2025-03-25 05:48:16.299+0000 [id=143]	INFO	jenkins.InitReactorRunner$1#onAttained: Started initialization
+2025-03-25 05:48:16.301+0000 [id=148]	INFO	jenkins.InitReactorRunner$1#onAttained: Listed all plugins
+2025-03-25 05:48:16.301+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Prepared all plugins
+2025-03-25 05:48:16.301+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Started all plugins
+2025-03-25 05:48:16.301+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Augmented all extensions
+2025-03-25 05:48:16.302+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: System config loaded
+2025-03-25 05:48:16.302+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: System config adapted
+2025-03-25 05:48:16.302+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Loaded all jobs
+2025-03-25 05:48:16.302+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Configuration for all jobs updated
+2025-03-25 05:48:16.302+0000 [id=144]	INFO	jenkins.InitReactorRunner$1#onAttained: Completed initialization
+2025-03-25 05:48:16.370+0000 [id=133]	INFO	h.m.UpdateCenter$CompleteBatchJob#run: Completed installation of 1 plugins in 2.2 sec
+2025-03-25 16:07:10.895+0000 [id=198]	INFO	hudson.model.Run#execute: Test #5 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-25 21:18:27.207+0000 [id=160]	INFO	hudson.model.Run#execute: Test #9 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-26 04:40:22.645+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 9fa5feed4fbb98880f039b41d31c463481607abaf3d1fa82163fd0c981a046f3. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 04:40:22.645+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 9fa5feed4fbb98880f039b41d31c463481607abaf3d1fa82163fd0c981a046f3. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 04:40:22.645+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 04:40:22.645+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 05:32:15.959+0000 [id=6121]	INFO	hudson.util.Retrier#start: Attempt #1 to do the action check updates server
+2025-03-26 05:32:18.442+0000 [id=6121]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.tasks.Maven.MavenInstaller
+2025-03-26 05:32:18.768+0000 [id=6121]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.tasks.Ant.AntInstaller
+2025-03-26 05:32:19.116+0000 [id=6121]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.plugins.gradle.GradleInstaller
+2025-03-26 05:32:19.116+0000 [id=6121]	INFO	hudson.util.Retrier#start: Performed the action check updates server successfully at the attempt #1
+2025-03-26 15:59:53.455+0000 [id=3336]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 2928e1483ff536daa1ff46bcf1b2ba6fc95bd4a50ce5934753ee7caf1862f137. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 15:59:53.455+0000 [id=3336]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 15:59:53.455+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 2928e1483ff536daa1ff46bcf1b2ba6fc95bd4a50ce5934753ee7caf1862f137. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 15:59:53.456+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 16:01:24.201+0000 [id=17]	INFO	h.p.b.g.GlobalTimeOutConfiguration#configure: global timeout has been cleared
+2025-03-26 16:01:25.005+0000 [id=21]	INFO	h.p.b.g.GlobalTimeOutConfiguration#configure: global timeout has been cleared
+2025-03-26 17:02:41.325+0000 [id=8982]	INFO	hudson.model.Run#execute: Test #13 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-26 17:03:06.202+0000 [id=9030]	INFO	hudson.model.Run#execute: Test #14 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-26 17:47:31.548+0000 [id=9190]	INFO	hudson.model.Run#execute: Test #16 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-26 17:50:04.895+0000 [id=9237]	INFO	hudson.model.Run#execute: Test #17 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-26 20:46:48.525+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:48.535+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:48.557+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:46:48.557+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:46:51.621+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:51.621+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:46:51.626+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:51.626+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:46:56.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:56.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:46:56.625+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:46:56.625+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:01.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:01.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:01.625+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:01.625+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:06.625+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:06.625+0000 [id=8738]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:06.626+0000 [id=8738]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:06.626+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:11.618+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:11.619+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:11.624+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:11.624+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:16.624+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:16.624+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:16.626+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:16.624+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:21.621+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:21.621+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:21.621+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:21.621+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:26.650+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:26.650+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:26.650+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:26.652+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:31.630+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:31.630+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:31.635+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:31.635+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:36.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:36.620+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:36.620+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:36.620+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:41.623+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:41.623+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:41.623+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:41.623+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:46.617+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:46.617+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:46.623+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:46.624+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:51.618+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:51.618+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:51.619+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:51.619+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:56.622+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:56.623+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:47:56.629+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:47:56.629+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:01.626+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:01.626+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:01.632+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:01.632+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:06.621+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:06.621+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:06.621+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:06.621+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:11.617+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:11.618+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:11.623+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:11.624+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:16.621+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:16.621+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:16.623+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:16.621+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:21.628+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:21.628+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:21.630+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:21.629+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:26.622+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:26.622+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:26.622+0000 [id=19]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:26.622+0000 [id=15]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:31.625+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:31.625+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:48:31.629+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:48:31.629+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-26 20:56:43.191+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:56:43.191+0000 [id=14]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-26 20:56:43.192+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb d078c3658330ec5036d8a24f8c47ea7396851ca5dc6f6f851d086393e03d3954. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-26 20:56:43.192+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-27 01:12:37.417+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 2b61544f453bf5ded85e14c6e5cb0d71f326763000a66191651333d1d55a24aa. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-27 01:12:37.418+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: Found invalid crumb 2b61544f453bf5ded85e14c6e5cb0d71f326763000a66191651333d1d55a24aa. If you are calling this URL with a script, please use the API Token instead. More information: https://www.jenkins.io/redirect/crumb-cannot-be-used-for-script
+2025-03-27 01:12:37.418+0000 [id=17]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/BuildQueueWidget/ajax by javad. Returning 403.
+2025-03-27 01:12:37.418+0000 [id=8990]	WARNING	hudson.security.csrf.CrumbFilter#doFilter: No valid crumb was included in request for /widget/ExecutorsWidget/ajax by javad. Returning 403.
+2025-03-27 05:32:16.448+0000 [id=12200]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.tasks.Maven.MavenInstaller
+2025-03-27 05:32:16.757+0000 [id=12200]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.tasks.Ant.AntInstaller
+2025-03-27 05:32:17.078+0000 [id=12200]	INFO	h.m.DownloadService$Downloadable#load: Obtained the updated data file for hudson.plugins.gradle.GradleInstaller
+2025-03-27 07:14:50.724+0000 [id=12639]	INFO	hudson.model.Run#execute: Test #26 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
+2025-03-27 07:16:31.331+0000 [id=12653]	INFO	hudson.model.Run#execute: Test #28 aborted
+java.lang.InterruptedException
+	at java.base/java.lang.Object.wait(Native Method)
+	at java.base/java.lang.Object.wait(Object.java:338)
+	at java.base/java.lang.ProcessImpl.waitFor(ProcessImpl.java:434)
+	at hudson.Proc$LocalProc.join(Proc.java:328)
+	at hudson.tasks.CommandInterpreter.join(CommandInterpreter.java:195)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:145)
+	at hudson.tasks.CommandInterpreter.perform(CommandInterpreter.java:92)
+	at hudson.tasks.BuildStepMonitor$1.perform(BuildStepMonitor.java:20)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.perform(AbstractBuild.java:818)
+	at hudson.model.Build$BuildExecution.build(Build.java:199)
+	at hudson.model.Build$BuildExecution.doRun(Build.java:164)
+	at hudson.model.AbstractBuild$AbstractBuildExecution.run(AbstractBuild.java:527)
+	at hudson.model.Run.execute(Run.java:1840)
+	at hudson.model.FreeStyleBuild.run(FreeStyleBuild.java:44)
+	at hudson.model.ResourceController.execute(ResourceController.java:101)
+	at hudson.model.Executor.run(Executor.java:446)
