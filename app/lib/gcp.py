@@ -5,23 +5,20 @@ import subprocess
 def docker_gcloud_login():
     try:
         # Get access token
-        access_token = subprocess.check_output(
-            ["gcloud", "auth", "print-access-token"], text=True
-        ).strip()
+        # access_token = subprocess.check_output(
+        #     ["gcloud", "auth", "print-access-token"], text=True
+        # ).strip()
 
         # Construct the Docker registry URL
-        registry_url = "https://us-west1-docker.pkg.dev"
+        # registry_url = "https://us-west1-docker.pkg.dev"
 
         # Run Docker login
         result = subprocess.run(
             [
-                "docker",
-                "login",
-                "-u",
-                "oauth2accesstoken",
-                "-p",
-                access_token,
-                registry_url,
+                "gcloud",
+                "auth",
+                "activate-service-account",
+                "--key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
             ],
             text=True,
             capture_output=True,

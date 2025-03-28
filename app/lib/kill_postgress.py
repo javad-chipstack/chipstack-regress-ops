@@ -1,17 +1,21 @@
 import subprocess
 
+
 def run_command(command):
     """Run a shell command and return the output."""
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        result = subprocess.run(
+            command, shell=True, check=True, capture_output=True, text=True
+        )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {command}\n{e.stderr}")
         return None
 
+
 def remove_postgres_containers():
     """Remove all running and stopped PostgreSQL containers."""
-    containers = run_command("docker ps -aq --filter \"ancestor=postgres\"")
+    containers = run_command('docker ps -aq --filter "ancestor=postgres"')
     if containers:
         run_command(f"docker rm -f {containers}")
         print("Removed PostgreSQL containers.")
@@ -50,6 +54,7 @@ def main():
     remove_postgres_volumes()
     remove_postgres_networks()
     print("PostgreSQL cleanup completed.")
+
 
 if __name__ == "__main__":
     main()

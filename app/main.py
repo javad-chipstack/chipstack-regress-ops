@@ -3,6 +3,7 @@ import time
 import os
 from docker_startup_checker import DockerStartupMonitor
 from git_docker_operation import GitDockerOperation
+from docker_log_streamer import DockerLogStreamer
 import subprocess
 from lib.gcp import docker_gcloud_login
 from lib.utils import delete_results, get_env_var, get_build_url, get_outdir
@@ -31,6 +32,10 @@ if __name__ == "__main__":
         git_docker_operation = GitDockerOperation(
             outdir=outdir, target_branch=target_branch
         )
+        docker_log_streamer = DockerLogStreamer(
+            container_name="server-server-1", outdir=outdir, start_time=None
+        )
+        docker_log_streamer.start()
         print("INFO: Starting monitoring docker logs and git operations", flush=True)
         monitor.start_monitoring()
         print("INFO: Starting git operations and docker reset", flush=True)
@@ -82,3 +87,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Error starting Docker monitor: {e}", flush=True)
+        docker_log_streamer.stop()
