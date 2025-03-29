@@ -1,3 +1,5 @@
 keys/service-account-key-kpi.json
 *.log
 __pycache__
+
+outdir
