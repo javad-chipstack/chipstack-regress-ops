@@ -5,13 +5,17 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Cwd 'cwd';
 use Time::HiRes qw(time);
+use File::Path  qw(make_path rmtree);
+use Proc::Background;
+
+my $verbosity = 0;    # Set to 1 for verbose output, 0 for silent
 
 our $CONFIG = {
     chipstack_ai_repo      => "/home/javad/dev/chipstack-ai",
     python_bin_path        => "/home/javad/.pyenv/shims/python",
     outdir                 => cwd() . "/outdir",
     target_branch          => "main",
-    hardrestartdocker      => 0,
+    hardrestartdocker      => 1,
     design_set             => "dev_v3_mini",
     server_url             => "http://localhost:8000/",
     eda_url                => "https://eda.chipstack.ai/",
@@ -40,20 +44,65 @@ GetOptions(
     "run_type=s"               => \$CONFIG->{run_type}
 ) or die "[ERROR] Invalid command-line arguments\n";
 
+sub create_log_dir_name {
+    my ( $cmd, $index, $outdir ) = @_;
+    $cmd =~ s/[^a-zA-Z0-9_\-\/]/_/g;
+    $cmd   = substr( $cmd, 0, 40 ) if length($cmd) > 40;
+    $index = sprintf( "%03d", $index );
+    return "$outdir/${index}_$cmd";
+}
+use Proc::Background;
+use File::Path qw(rmtree make_path);
+use Symbol 'gensym';
+
 sub run_command {
-    my ( $cmd, $cmd_log_dir ) = @_;
-    mkdir $cmd_log_dir or die "Cannot create directory $cmd_log_dir: $!";
+    my ( $cmd, $index, $outdir, $verbosity ) = @_;
+
+    # Create log directory
+    my $cmd_log_dir = create_log_dir_name( $cmd, $index, $outdir );
+    if ( -d $cmd_log_dir ) {
+        print "[INFO] Removing existing directory: $cmd_log_dir\n"
+          if $verbosity;
+        rmtree($cmd_log_dir) or die "Cannot remove directory $cmd_log_dir: $!";
+    }
+    print "[INFO] Creating directory: $cmd_log_dir\n" if $verbosity;
+    make_path($cmd_log_dir) or die "Cannot create directory $cmd_log_dir: $!";
+
+    # Define file paths for capturing stdout, stderr, and exit code
     my ( $stdout_file, $stderr_file, $exit_code_file ) = (
         "$cmd_log_dir/stdout.log", "$cmd_log_dir/stderr.log",
         "$cmd_log_dir/exit_code.log"
     );
+
+    # Open files for logging stdout and stderr
+    open my $fh_out, '>', $stdout_file or die "Cannot open $stdout_file: $!";
+    open my $fh_err, '>', $stderr_file or die "Cannot open $stderr_file: $!";
+
     print "[CMD] $cmd\n";
-    my $exit_code = system("$cmd >$stdout_file 2>$stderr_file");
+
+# Launch the command using Proc::Background, with output redirected to filehandles
+    my $proc =
+      Proc::Background->new( { stdout => $fh_out, stderr => $fh_err }, $cmd );
+
+    # Close filehandles to ensure the buffering is managed properly
+    close $fh_out;
+    close $fh_err;
+
+    # Wait for the process to finish and capture its exit code
+    $proc->wait();
+    my $exit_code = $proc->wait();
+
+    # Save the exit code to a file
     open my $fh_exit, '>', $exit_code_file
       or die "Cannot open $exit_code_file: $!";
     print $fh_exit $exit_code;
     close $fh_exit;
-    die "[ERROR] Command failed: $cmd\n" if $exit_code != 0;
+
+    # If the command failed, display an error
+    if ( $exit_code != 0 ) {
+        die "[ERROR] Command failed: $cmd\nCheck logs at $cmd_log_dir";
+    }
+
     return $exit_code;
 }
 
@@ -63,17 +112,46 @@ sub setup_working_directory {
       "[ERROR] Cannot change directory to $CONFIG->{chipstack_ai_repo}: $!";
 }
 
-sub run_make_hardrestartdocker {
+sub hardrestartdocker {
     my $server_dir = $CONFIG->{chipstack_ai_repo} . "/server";
     chdir($server_dir)
       or die "[ERROR] Cannot change directory to $server_dir: $!";
-    run_command( "make hardrestartdocker",
-        "$CONFIG->{outdir}/logs_make_hardrestartdocker" );
+    run_command( "make hardrestartdocker", 12, $CONFIG->{outdir} );
+
+    print
+"[INFO] Waiting for Docker logs to show 'Application startup complete.'\n";
+    my $start_time = time();
+    my $timeout    = 20 * 60;    # 20 minutes in seconds
+    my $log_command =
+      "docker logs -f server-server-1 2>&1";    # Redirect stderr to stdout
+
+    open my $log_fh, '-|', $log_command
+      or die "[ERROR] Cannot execute: $log_command\n";
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm $timeout;
+        while ( my $line = <$log_fh> ) {
+            print $line;
+            if ( $line =~ /Application startup complete\./ ) {
+                print "[INFO] Application startup detected.\n";
+                last;
+            }
+        }
+        alarm 0;
+    };
+    if ($@) {
+        die "[ERROR] Timeout reached while waiting for application startup.\n"
+          if $@ eq "timeout\n";
+        die $@;
+    }
+    close $log_fh;
 }
 
 sub main {
     setup_working_directory();
     my @commands = (
+"gcloud auth activate-service-account --key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
+"gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-west1-docker.pkg.dev",
         "git stash push -m 'Auto-stash before reset'",
         "git checkout main",
         "git pull",
@@ -85,12 +163,19 @@ sub main {
         "git branch --show-current",
         "git log -1 --oneline"
     );
-    my $log_dir = "$CONFIG->{outdir}/logs_" . time;
-    mkdir $log_dir or die "Cannot create log directory: $log_dir\n";
-    foreach my $cmd (@commands) {
-        run_command( $cmd, "$log_dir/" . time );
+    if ( !-d $CONFIG->{outdir} ) {
+        make_path( $CONFIG->{outdir} )
+          or die "Cannot create log directory: $CONFIG->{outdir}\n";
     }
-    run_make_hardrestartdocker() if $CONFIG->{hardrestartdocker};
+    foreach my $index ( 0 .. $#commands ) {
+        my $cmd = $commands[$index];
+        run_command( $cmd, $index, $CONFIG->{outdir} );
+    }
+    if ( $CONFIG->{hardrestartdocker} ) {
+        print "[INFO] Hard restarting Docker...\n";
+        hardrestartdocker();
+    }
+    hardrestartdocker();
     my $python_path = join( ":",
         "$CONFIG->{chipstack_ai_repo}/common",
         "$CONFIG->{chipstack_ai_repo}/client",
