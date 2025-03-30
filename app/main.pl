@@ -19,7 +19,7 @@ our $CONFIG = {
     python_bin_path        => "/home/javad/.pyenv/shims/python",
     outdir                 => cwd() . "/outdir",
     target_branches        => "main",
-    server_restard_docker  => 1,
+    server_restart_docker  => 1,
     design_set             => "dev_v3_mini",
     server_url             => "http://localhost:8000/",
     eda_url                => "https://eda.chipstack.ai/",
@@ -33,10 +33,9 @@ our $CONFIG = {
 };
 
 GetOptions(
-    "target_branches=s"      => \$CONFIG->{target_branches},
-    "outdir=s"               => \$CONFIG->{outdir},
-    "server_restard_docker!" =>
-      \$CONFIG->{hardresserver_restard_dockertartdocker},
+    "target_branches=s"        => \$CONFIG->{target_branches},
+    "outdir=s"                 => \$CONFIG->{outdir},
+    "server_restart_docker=s"  => \$CONFIG->{server_restart_docker},
     "design_set=s"             => \$CONFIG->{design_set},
     "server_url=s"             => \$CONFIG->{server_url},
     "eda_url=s"                => \$CONFIG->{eda_url},
@@ -115,13 +114,14 @@ sub setup_working_directory {
 }
 
 sub restartdocker {
-    if ( !defined $CONFIG->{server_restard_docker} ) {
-        die "[ERROR] server_restard_docker is not defined.\n";
+    if ( !defined $CONFIG->{server_restart_docker} ) {
+        die "[ERROR] server_restart_docker is not defined.\n";
     }
-    elsif ( $CONFIG->{server_restard_docker} !~ /^hard$|^soft$|^none$/ ) {
-        die "[ERROR] server_restard_docker must be hard, soft or none.\n";
+    elsif ( $CONFIG->{server_restart_docker} !~ /^hard$|^soft$|^none$/ ) {
+        die "[ERROR] server_restart_docker must be hard, soft or none."
+          . " $CONFIG->{server_restart_docker} is not acceptable.\n";
     }
-    elsif ( $CONFIG->{server_restard_docker} eq "none" ) {
+    elsif ( $CONFIG->{server_restart_docker} eq "none" ) {
         print "[INFO] Skipping Docker restart.\n";
         return;
     }
@@ -130,10 +130,10 @@ sub restartdocker {
     chdir($server_dir)
       or die "[ERROR] Cannot change directory to $server_dir: $!";
 
-    if ( $$CONFIG->{server_restard_docker} eq "hard" ) {
+    if ( $CONFIG->{server_restart_docker} eq "hard" ) {
         run_command( "make hardrestartdocker", 12, $outdir );
     }
-    elsif ( $$CONFIG->{server_restard_docker} eq "soft" ) {
+    elsif ( $CONFIG->{server_restart_docker} eq "soft" ) {
         run_command( "make restartdocker", 12, $outdir );
     }
 
@@ -215,7 +215,7 @@ sub main {
             my $cmd = $commands[$index];
             run_command( $cmd, $index, $cur_outdir );
         }
-        restartdocker( $CONFIG->{server_restard_docker}, $cur_outdir );
+        restartdocker( $CONFIG->{server_restart_docker}, $cur_outdir );
 
         my $python_path = join(
             ":",
