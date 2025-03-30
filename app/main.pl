@@ -16,6 +16,7 @@ our $CONFIG = {
     outdir                 => cwd() . "/outdir",
     target_branch          => "main",
     hardrestartdocker      => 1,
+    restartdocker          => 1,
     design_set             => "dev_v3_mini",
     server_url             => "http://localhost:8000/",
     eda_url                => "https://eda.chipstack.ai/",
@@ -32,6 +33,7 @@ GetOptions(
     "target_branch=s"          => \$CONFIG->{target_branch},
     "outdir=s"                 => \$CONFIG->{outdir},
     "hardrestartdocker!"       => \$CONFIG->{hardrestartdocker},
+    "restartdocker!"           => \$CONFIG->{restartdocker},
     "design_set=s"             => \$CONFIG->{design_set},
     "server_url=s"             => \$CONFIG->{server_url},
     "eda_url=s"                => \$CONFIG->{eda_url},
@@ -112,14 +114,22 @@ sub setup_working_directory {
       "[ERROR] Cannot change directory to $CONFIG->{chipstack_ai_repo}: $!";
 }
 
-sub hardrestartdocker {
+sub restartdocker {
+    my ($hardrestart) = @_;
     my $server_dir = $CONFIG->{chipstack_ai_repo} . "/server";
     chdir($server_dir)
       or die "[ERROR] Cannot change directory to $server_dir: $!";
-    run_command( "make hardrestartdocker", 12, $CONFIG->{outdir} );
+    if ($hardrestart) {
+
+        run_command( "make hardrestartdocker", 12, $CONFIG->{outdir} );
+    }
+    else {
+        run_command( "make restartdocker", 12, $CONFIG->{outdir} );
+    }
 
     print
 "[INFO] Waiting for Docker logs to show 'Application startup complete.'\n";
+
     my $start_time = time();
     my $timeout    = 20 * 60;    # 20 minutes in seconds
     my $log_command =
@@ -173,30 +183,44 @@ sub main {
     }
     if ( $CONFIG->{hardrestartdocker} ) {
         print "[INFO] Hard restarting Docker...\n";
-        hardrestartdocker();
+        restartdocker(1);
     }
-    hardrestartdocker();
-    my $python_path = join( ":",
-        "$CONFIG->{chipstack_ai_repo}/common",
-        "$CONFIG->{chipstack_ai_repo}/client",
-        "$CONFIG->{chipstack_ai_repo}/kpi" );
+    else if ( $CONFIG->{restartdocker} ) {
+        print "[INFO] Restarting Docker...\n";
+        restartdocker(0);
+    }
+    else {
+        print "[INFO] Skipping Docker restart.\n";
+    }
+    my $python_path = join(
+        ":",
+        (
+            "$CONFIG->{chipstack_ai_repo}/common",
+            "$CONFIG->{chipstack_ai_repo}/client",
+            "$CONFIG->{chipstack_ai_repo}/kpi"
+        )
+    );
 
     my $kpi_path      = "$CONFIG->{chipstack_ai_repo}/kpi/chipstack_kpi";
-    my $final_command = join( " ",
-        "export PYTHONPATH=$python_path:\$PYTHONPATH ;",
-        $CONFIG->{python_bin_path},
-        "$kpi_path/app/unit_test_kpi_run.py",
-        "--design_file $kpi_path/configs/$CONFIG->{design_set}.yaml",
-        "--server_url $CONFIG->{server_url}",
-        "--eda_url $CONFIG->{eda_url}",
-        "--llm_flow $CONFIG->{llm_flow}",
-        "--syntax_check_provider $CONFIG->{syntax_check_provider}",
-        "--output_dir $CONFIG->{outdir}/outdir_kpi",
-        "--enable_project_support $CONFIG->{enable_project_support}",
-        "--use_primitives $CONFIG->{use_primitives}",
-        "--iterate_simulation_results $CONFIG->{iterate_sim}",
-        "--num_random_restarts $CONFIG->{random_restarts}",
-        "--run_type $CONFIG->{run_type}" );
+    my $final_command = join(
+        " ",
+        (
+            "export PYTHONPATH=$python_path:\$PYTHONPATH ;",
+            $CONFIG->{python_bin_path},
+            "$kpi_path/app/unit_test_kpi_run.py",
+            "--design_file $kpi_path/configs/$CONFIG->{design_set}.yaml",
+            "--server_url $CONFIG->{server_url}",
+            "--eda_url $CONFIG->{eda_url}",
+            "--llm_flow $CONFIG->{llm_flow}",
+            "--syntax_check_provider $CONFIG->{syntax_check_provider}",
+            "--output_dir $CONFIG->{outdir}/outdir_kpi",
+            "--enable_project_support $CONFIG->{enable_project_support}",
+            "--use_primitives $CONFIG->{use_primitives}",
+            "--iterate_simulation_results $CONFIG->{iterate_sim}",
+            "--num_random_restarts $CONFIG->{random_restarts}",
+            "--run_type $CONFIG->{run_type}"
+        )
+    );
     print "[INFO] Running final command: $final_command\n";
     system($final_command) == 0
       or die "[ERROR] Final command execution failed!\n";
