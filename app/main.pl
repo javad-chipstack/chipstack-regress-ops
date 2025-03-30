@@ -7,6 +7,11 @@ use Cwd 'cwd';
 use Time::HiRes qw(time);
 use File::Path  qw(make_path rmtree);
 use Proc::Background;
+use Proc::Background;
+use File::Path qw(rmtree make_path);
+use Symbol 'gensym';
+
+$| = 1;    # Flush output immediately
 
 my $verbosity = 0;    # Set to 1 for verbose output, 0 for silent
 
@@ -48,14 +53,11 @@ GetOptions(
 
 sub create_log_dir_name {
     my ( $cmd, $index, $outdir ) = @_;
-    $cmd =~ s/[^a-zA-Z0-9_\-\/]/_/g;
+    $cmd =~ s/[^a-zA-Z0-9_\-]/_/g;
     $cmd   = substr( $cmd, 0, 40 ) if length($cmd) > 40;
     $index = sprintf( "%03d", $index );
-    return "$outdir/${index}_$cmd";
+    return "$outdir/logs/${index}_$cmd";
 }
-use Proc::Background;
-use File::Path qw(rmtree make_path);
-use Symbol 'gensym';
 
 sub run_command {
     my ( $cmd, $index, $outdir, $verbosity ) = @_;
@@ -115,20 +117,20 @@ sub setup_working_directory {
 }
 
 sub restartdocker {
-    my ($hardrestart) = @_;
+    my ( $hardrestart, $outdir ) = @_;
     my $server_dir = $CONFIG->{chipstack_ai_repo} . "/server";
     chdir($server_dir)
       or die "[ERROR] Cannot change directory to $server_dir: $!";
     if ($hardrestart) {
 
-        run_command( "make hardrestartdocker", 12, $CONFIG->{outdir} );
+        run_command( "make hardrestartdocker", 12, $outdir );
     }
     else {
-        run_command( "make restartdocker", 12, $CONFIG->{outdir} );
+        run_command( "make restartdocker", 12, $outdir );
     }
 
-    print
-"[INFO] Waiting for Docker logs to show 'Application startup complete.'\n";
+    print "[INFO] Waiting for Docker logs to show "
+      . "'Application startup complete.'\n";
 
     my $start_time = time();
     my $timeout    = 20 * 60;    # 20 minutes in seconds
@@ -141,6 +143,7 @@ sub restartdocker {
         local $SIG{ALRM} = sub { die "timeout\n" };
         alarm $timeout;
         while ( my $line = <$log_fh> ) {
+            $line =~ s/^/    /mg;    # Add indentation to all lines
             print $line;
             if ( $line =~ /Application startup complete\./ ) {
                 print "[INFO] Application startup detected.\n";
@@ -157,11 +160,34 @@ sub restartdocker {
     close $log_fh;
 }
 
+sub get_human_readable_name_for_branch {
+    my ($branch) = @_;
+    my $human_readable_name = $branch;
+    $human_readable_name =~ s/[^a-zA-Z0-9_-]/_/g;
+    $human_readable_name .= "_"
+      . join( "",
+        map { ( "a" .. "z", "A" .. "Z", 0 .. 9 )[ rand 62 ] } 1 .. 8 );
+    return $human_readable_name;
+}
+
 sub main {
     setup_working_directory();
+    if ( -d $CONFIG->{outdir} ) {
+        print "[INFO] Removing existing content in $CONFIG->{outdir}\n"
+          if $verbosity;
+        rmtree( $CONFIG->{outdir} )
+          or die "Cannot remove directory $CONFIG->{outdir}: $!";
+    }
+
+    my $br_hr_name =
+      get_human_readable_name_for_branch( $CONFIG->{target_branch} );
+    my $cur_outdir = $CONFIG->{outdir} . "/$br_hr_name";
+
     my @commands = (
-"gcloud auth activate-service-account --key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
-"gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-west1-docker.pkg.dev",
+        "gcloud auth activate-service-account "
+          . "--key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
+        "gcloud auth print-access-token | docker login -u oauth2accesstoken "
+          . "--password-stdin https://us-west1-docker.pkg.dev",
         "git stash push -m 'Auto-stash before reset'",
         "git checkout main",
         "git pull",
@@ -173,21 +199,21 @@ sub main {
         "git branch --show-current",
         "git log -1 --oneline"
     );
-    if ( !-d $CONFIG->{outdir} ) {
-        make_path( $CONFIG->{outdir} )
-          or die "Cannot create log directory: $CONFIG->{outdir}\n";
+    if ( !-d $cur_outdir ) {
+        make_path($cur_outdir)
+          or die "Cannot create log directory: $cur_outdir\n";
     }
     foreach my $index ( 0 .. $#commands ) {
         my $cmd = $commands[$index];
-        run_command( $cmd, $index, $CONFIG->{outdir} );
+        run_command( $cmd, $index, $cur_outdir );
     }
     if ( $CONFIG->{hardrestartdocker} ) {
         print "[INFO] Hard restarting Docker...\n";
-        restartdocker(1);
+        restartdocker( 1, $cur_outdir );
     }
-    else if ( $CONFIG->{restartdocker} ) {
+    elsif ( $CONFIG->{restartdocker} ) {
         print "[INFO] Restarting Docker...\n";
-        restartdocker(0);
+        restartdocker( 0, $cur_outdir );
     }
     else {
         print "[INFO] Skipping Docker restart.\n";
@@ -213,7 +239,7 @@ sub main {
             "--eda_url $CONFIG->{eda_url}",
             "--llm_flow $CONFIG->{llm_flow}",
             "--syntax_check_provider $CONFIG->{syntax_check_provider}",
-            "--output_dir $CONFIG->{outdir}/outdir_kpi",
+            "--output_dir $cur_outdir/outdir_kpi",
             "--enable_project_support $CONFIG->{enable_project_support}",
             "--use_primitives $CONFIG->{use_primitives}",
             "--iterate_simulation_results $CONFIG->{iterate_sim}",
@@ -221,9 +247,7 @@ sub main {
             "--run_type $CONFIG->{run_type}"
         )
     );
-    print "[INFO] Running final command: $final_command\n";
-    system($final_command) == 0
-      or die "[ERROR] Final command execution failed!\n";
+    run_command( $final_command, 13, $cur_outdir );
     print "[INFO] Script execution completed successfully.\n";
 }
 
