@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use feature 'state';
 use IPC::Open3;
 use Symbol 'gensym';
 use Cwd 'cwd';
@@ -48,6 +49,13 @@ GetOptions(
     "run_type=s"               => \$CONFIG->{run_type}
 ) or die "[ERROR] Invalid command-line arguments\n";
 
+print "[INFO] Configuration Parameters:\n";
+foreach my $key ( sort keys %$CONFIG ) {
+    print "  $key: $CONFIG->{$key}\n";
+}
+print "[INFO] Verbosity: $verbosity\n";
+print "[INFO] Current working directory: " . cwd() . "\n";
+
 sub create_log_dir_name {
     my ( $cmd, $index, $outdir ) = @_;
     $cmd =~ s/[^a-zA-Z0-9_\-]/_/g;
@@ -57,10 +65,12 @@ sub create_log_dir_name {
 }
 
 sub run_command {
-    my ( $cmd, $index, $outdir, $verbosity ) = @_;
+    my ( $cmd, $outdir, $verbosity ) = @_;
+
+    state $cmd_index = 0;
 
     # Create log directory
-    my $cmd_log_dir = create_log_dir_name( $cmd, $index, $outdir );
+    my $cmd_log_dir = create_log_dir_name( $cmd, $cmd_index, $outdir );
     if ( -d $cmd_log_dir ) {
         print "[INFO] Removing existing directory: $cmd_log_dir\n"
           if $verbosity;
@@ -70,18 +80,21 @@ sub run_command {
     make_path($cmd_log_dir) or die "Cannot create directory $cmd_log_dir: $!";
 
     # Define file paths for capturing stdout, stderr, and exit code
-    my ( $stdout_file, $stderr_file, $exit_code_file ) = (
-        "$cmd_log_dir/stdout.log", "$cmd_log_dir/stderr.log",
-        "$cmd_log_dir/exit_code.log"
+    my ( $cmd_file, $stdout_file, $stderr_file, $exit_code_file ) = (
+        "$cmd_log_dir/cmd.log",    "$cmd_log_dir/stdout.log",
+        "$cmd_log_dir/stderr.log", "$cmd_log_dir/exit_code.log"
     );
 
     # Open files for logging stdout and stderr
+    open my $fh_cmd, '>', $cmd_file or die "Cannot open $cmd_file: $!";
+    print $fh_cmd $cmd;
+    close $fh_cmd;
+
     open my $fh_out, '>', $stdout_file or die "Cannot open $stdout_file: $!";
     open my $fh_err, '>', $stderr_file or die "Cannot open $stderr_file: $!";
 
     print "[CMD] $cmd\n";
 
-# Launch the command using Proc::Background, with output redirected to filehandles
     my $proc =
       Proc::Background->new( { stdout => $fh_out, stderr => $fh_err }, $cmd );
 
@@ -103,6 +116,8 @@ sub run_command {
     if ( $exit_code != 0 ) {
         die "[ERROR] Command failed: $cmd\nCheck logs at $cmd_log_dir";
     }
+
+    $cmd_index += 1;
 
     return $exit_code;
 }
@@ -131,10 +146,10 @@ sub restartdocker {
       or die "[ERROR] Cannot change directory to $server_dir: $!";
 
     if ( $CONFIG->{server_restart_docker} eq "hard" ) {
-        run_command( "make hardrestartdocker", 12, $outdir );
+        run_command( "make hardrestartdocker", $outdir );
     }
     elsif ( $CONFIG->{server_restart_docker} eq "soft" ) {
-        run_command( "make restartdocker", 12, $outdir );
+        run_command( "make restartdocker", $outdir );
     }
 
     print "[INFO] Waiting for Docker logs to show "
@@ -168,6 +183,60 @@ sub restartdocker {
     close $log_fh;
 }
 
+sub sync_repo {
+    my ( $curr_branch, $cur_outdir ) = @_;
+
+    my $repo_dir = $CONFIG->{chipstack_ai_repo};
+    chdir($repo_dir)
+      or die "[ERROR] Cannot change directory to $repo_dir: $!";
+
+    my @commands = (
+        "gcloud auth activate-service-account "
+          . "--key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
+        "gcloud auth print-access-token"
+          . " | docker login -u oauth2accesstoken "
+          . "--password-stdin https://us-west1-docker.pkg.dev",
+        "git stash push -m 'Auto-stash before reset'",
+        "git checkout main",
+        "git pull",
+        "git reset --hard origin/main",
+        "git clean -fd",
+        "git pull",
+        "git checkout $curr_branch",
+        "git pull",
+        "git branch --show-current",
+        "git log -1 --oneline"
+    );
+
+    foreach my $index ( 0 .. $#commands ) {
+        my $cmd = $commands[$index];
+        run_command( $cmd, $cur_outdir );
+    }
+}
+
+sub clean_postgress {
+    my ($cur_outdir) = @_;
+
+    my $server_dir = $CONFIG->{chipstack_ai_repo} . "/server";
+    chdir($server_dir)
+      or die "[ERROR] Cannot change directory to $server_dir: $!";
+
+    my @commands = (
+        "docker stop server-postgres-1 || true",
+        "docker rm server-postgres-1 || true",
+        "docker volume rm postgres-data || true",
+        "docker images | grep postgres | awk '{print \$3}' | "
+          . "xargs -r docker rmi -f",
+        "docker volume prune -f",
+        "docker network prune -f",
+        "docker system prune -a -f --volumes"
+    );
+    foreach my $index ( 0 .. $#commands ) {
+        my $cmd = $commands[$index];
+        run_command( $cmd, $cur_outdir );
+    }
+}
+
 sub get_var_name_for_branch {
     my ($branch) = @_;
     my $human_readable_name = $branch;
@@ -189,32 +258,12 @@ sub main {
     for my $curr_branch ( split( /[,\n\r\s]+/, $CONFIG->{target_branches} ) ) {
         my $curr_branch_var_name = get_var_name_for_branch($curr_branch);
         my $cur_outdir           = $CONFIG->{outdir} . "/$curr_branch_var_name";
-
-        my @commands = (
-            "gcloud auth activate-service-account "
-              . "--key-file=/home/javad/dev/chipstack-regress-ops/keys/service-account-key-kpi.json",
-            "gcloud auth print-access-token"
-              . " | docker login -u oauth2accesstoken "
-              . "--password-stdin https://us-west1-docker.pkg.dev",
-            "git stash push -m 'Auto-stash before reset'",
-            "git checkout main",
-            "git pull",
-            "git reset --hard origin/main",
-            "git clean -fd",
-            "git pull",
-            "git checkout $curr_branch",
-            "git pull",
-            "git branch --show-current",
-            "git log -1 --oneline"
-        );
         if ( !-d $cur_outdir ) {
             make_path($cur_outdir)
               or die "Cannot create log directory: $cur_outdir\n";
         }
-        foreach my $index ( 0 .. $#commands ) {
-            my $cmd = $commands[$index];
-            run_command( $cmd, $index, $cur_outdir );
-        }
+        clean_postgress($cur_outdir);
+        sync_repo( $curr_branch, $cur_outdir );
         restartdocker( $CONFIG->{server_restart_docker}, $cur_outdir );
 
         my $python_path = join(
@@ -246,7 +295,7 @@ sub main {
                 "--run_type $CONFIG->{run_type}"
             )
         );
-        run_command( $final_command, 13, $cur_outdir );
+        run_command( $final_command, $cur_outdir );
     }
 
     print "[INFO] Script execution completed successfully.\n";
