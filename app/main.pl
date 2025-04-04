@@ -20,7 +20,8 @@ our $CONFIG = {
     python_bin_path        => "/home/javad/.pyenv/shims/python",
     outdir                 => cwd() . "/outdir",
     target_branches        => "main",
-    server_restart_docker  => 1,
+    server_restart_docker  => "hard",
+    clean_postgress        => "false",
     design_set             => "dev_v3_mini",
     server_url             => "http://localhost:8000/",
     eda_url                => "https://eda.chipstack.ai/",
@@ -37,6 +38,7 @@ GetOptions(
     "target_branches=s"        => \$CONFIG->{target_branches},
     "outdir=s"                 => \$CONFIG->{outdir},
     "server_restart_docker=s"  => \$CONFIG->{server_restart_docker},
+    "clean_postgress=s"        => \$CONFIG->{clean_postgress},
     "design_set=s"             => \$CONFIG->{design_set},
     "server_url=s"             => \$CONFIG->{server_url},
     "eda_url=s"                => \$CONFIG->{eda_url},
@@ -198,7 +200,7 @@ sub sync_repo {
           . "--password-stdin https://us-west1-docker.pkg.dev",
         "git stash push -m 'Auto-stash before reset'",
         "git checkout main",
-        "git pull",
+        "git pull --no-rebase",
         "git reset --hard origin/main",
         "git clean -fd",
         "git pull",
@@ -222,11 +224,10 @@ sub clean_postgress {
       or die "[ERROR] Cannot change directory to $server_dir: $!";
 
     my @commands = (
-        "docker stop server-postgres-1 || true",
-        "docker rm server-postgres-1 || true",
-        "docker volume rm postgres-data || true",
-        "docker images | grep postgres | awk '{print \$3}' | "
-          . "xargs -r docker rmi -f",
+        "make stopdocker",
+        "docker rm -f server-postgres-1 || echo 'Container does not exist'",
+        "docker volume rm postgres-data",
+"docker images | grep postgres | awk '{print \$3}' | xargs -r docker rmi -f",
         "docker volume prune -f",
         "docker network prune -f",
         "docker system prune -a -f --volumes"
@@ -241,8 +242,8 @@ sub get_var_name_for_branch {
     my ($branch) = @_;
     my $human_readable_name = $branch;
     $human_readable_name =~ s/[^a-zA-Z0-9_-]/_/g;
-    $human_readable_name .=
-      "_" . join( "", map { ( "a" .. "z", 0 .. 9 )[ rand 36 ] } 1 .. 10 );
+    # $human_readable_name .=
+    #   "_" . join( "", map { ( "a" .. "z", 0 .. 9 )[ rand 36 ] } 1 .. 10 );
     return $human_readable_name;
 }
 
@@ -258,11 +259,18 @@ sub main {
     for my $curr_branch ( split( /[,\n\r\s]+/, $CONFIG->{target_branches} ) ) {
         my $curr_branch_var_name = get_var_name_for_branch($curr_branch);
         my $cur_outdir           = $CONFIG->{outdir} . "/$curr_branch_var_name";
+        print "[INFO] Processing branch: $curr_branch\n";
         if ( !-d $cur_outdir ) {
             make_path($cur_outdir)
               or die "Cannot create log directory: $cur_outdir\n";
         }
-        clean_postgress($cur_outdir);
+        if ( $CONFIG->{clean_postgress} eq "true" ) {
+            print "[INFO] Cleaning Postgres...\n";
+            clean_postgress($cur_outdir);
+        }
+        else {
+            print "[INFO] Skipping Postgres cleanup.\n";
+        }
         sync_repo( $curr_branch, $cur_outdir );
         restartdocker( $CONFIG->{server_restart_docker}, $cur_outdir );
 
@@ -296,8 +304,56 @@ sub main {
             )
         );
         run_command( $final_command, $cur_outdir );
-    }
 
+        my @collected_files;
+        my $find_command = "find $cur_outdir/outdir_kpi -type f \\( -name '*.sv' -o -name '*.json' -o -name '*.csv' \\)";
+        print "[INFO] Running find command: $find_command\n" if $verbosity;
+
+        open my $find_fh, '-|', $find_command or die "[ERROR] Cannot execute find command: $!";
+        while (my $file = <$find_fh>) {
+            chomp $file;
+            push @collected_files, $file;
+        }
+        close $find_fh;
+
+
+        foreach my $file (@collected_files) {
+            if ($file =~ /\.sv$/) {
+                print "[INFO] Converting SystemVerilog to HTML for file: $file\n";
+                my $convert_command = join(
+                    " ",
+                    (
+                    $CONFIG->{python_bin_path},
+                    "/home/javad/dev/chipstack-regress-ops/app/py/systemverilog_to_html.py",
+                    $file
+                    )
+                );
+                run_command($convert_command, $cur_outdir, $verbosity);
+            } elsif ($file =~ /\.json$/) {
+                print "[INFO] Converting JSON to HTML for file: $file\n";
+                my $convert_command = join(
+                    " ",
+                    (
+                    $CONFIG->{python_bin_path},
+                    "/home/javad/dev/chipstack-regress-ops/app/py/json_to_html.py",
+                    $file
+                    )
+                );
+                run_command($convert_command, $cur_outdir, $verbosity);
+            } elsif ($file =~ /\.csv$/) {
+                print "[INFO] Converting CSV to HTML for file: $file\n";
+                my $convert_command = join(
+                    " ",
+                    (
+                    $CONFIG->{python_bin_path},
+                    "/home/javad/dev/chipstack-regress-ops/app/py/csv_to_html.py",
+                    $file
+                    )
+                );
+                run_command($convert_command, $cur_outdir, $verbosity);
+            }
+        }
+    }
     print "[INFO] Script execution completed successfully.\n";
 }
 main();
