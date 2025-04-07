@@ -1,0 +1,14 @@
+pymongo
+dotenv
+requests
+pydantic
+streamlit
+##-e .
+invoke
+ruff
+nltk
+random_word
+codename
+pygments
+tabulate
+pytz

@@ -67,7 +67,7 @@ sub create_log_dir_name {
 }
 
 sub run_command {
-    my ( $cmd, $outdir, $verbosity ) = @_;
+    my ( $cmd, $outdir, $die_on_failure, $verbosity ) = @_;
 
     state $cmd_index = 0;
 
@@ -115,7 +115,7 @@ sub run_command {
     close $fh_exit;
 
     # If the command failed, display an error
-    if ( $exit_code != 0 ) {
+    if ( $exit_code != 0 && $die_on_failure) {
         die "[ERROR] Command failed: $cmd\nCheck logs at $cmd_log_dir";
     }
 
@@ -130,7 +130,7 @@ sub setup_working_directory {
       "[ERROR] Cannot change directory to $CONFIG->{chipstack_ai_repo}: $!";
 }
 
-sub restartdocker {
+sub restart_docker {
     if ( !defined $CONFIG->{server_restart_docker} ) {
         die "[ERROR] server_restart_docker is not defined.\n";
     }
@@ -148,10 +148,10 @@ sub restartdocker {
       or die "[ERROR] Cannot change directory to $server_dir: $!";
 
     if ( $CONFIG->{server_restart_docker} eq "hard" ) {
-        run_command( "make hardrestartdocker", $outdir );
+        run_command( "make hardrestartdocker", $outdir , 1 );
     }
     elsif ( $CONFIG->{server_restart_docker} eq "soft" ) {
-        run_command( "make restartdocker", $outdir );
+        run_command( "make restartdocker", $outdir , 1);
     }
 
     print "[INFO] Waiting for Docker logs to show "
@@ -201,18 +201,18 @@ sub sync_repo {
         "git stash push -m 'Auto-stash before reset'",
         "git checkout main",
         "git pull --no-rebase",
-        "git reset --hard origin/main",
+         "git reset --hard origin/main",
         "git clean -fd",
         "git pull",
-        "git checkout $curr_branch",
+         "git checkout $curr_branch",
         "git pull",
         "git branch --show-current",
         "git log -1 --oneline"
     );
 
     foreach my $index ( 0 .. $#commands ) {
-        my $cmd = $commands[$index];
-        run_command( $cmd, $cur_outdir );
+         my $cmd = $commands[$index];
+        run_command( $cmd, $cur_outdir , 1);
     }
 }
 
@@ -234,7 +234,7 @@ sub clean_postgress {
     );
     foreach my $index ( 0 .. $#commands ) {
         my $cmd = $commands[$index];
-        run_command( $cmd, $cur_outdir );
+        run_command( $cmd, $cur_outdir ,1);
     }
 }
 
@@ -245,6 +245,132 @@ sub get_var_name_for_branch {
     # $human_readable_name .=
     #   "_" . join( "", map { ( "a" .. "z", 0 .. 9 )[ rand 36 ] } 1 .. 10 );
     return $human_readable_name;
+}
+
+sub collect_files {
+    my ($dir) = @_; 
+    my @files;
+
+    my $find_command = "find $dir/outdir_kpi -type f \\( -name '*.sv' -o -name '*.json' -o -name '*.csv' \\)";
+    print "[INFO] Running find command: $find_command\n" if $verbosity;
+
+    open my $find_fh, '-|', $find_command or die "[ERROR] Cannot execute find command: $!";
+    while (my $file = <$find_fh>) {
+        chomp $file;
+        push @files, $file;
+    }
+    close $find_fh;
+
+    return @files;
+}
+
+sub  create_html_reports {
+    my ($dir) = @_;
+    my @collected_files = collect_files($dir);
+    foreach my $file (@collected_files) {
+        if ($file =~ /\.sv$/) {
+            print "[INFO] Converting SystemVerilog to HTML for file: $file\n";
+            my $convert_command = join(
+                " ",
+                (
+                $CONFIG->{python_bin_path},
+                "/home/javad/dev/chipstack-regress-ops/app/py/systemverilog_to_html.py",
+                $file
+                )
+            );
+            run_command($convert_command, $dir, 1,$verbosity);
+        } elsif ($file =~ /\.json$/) {
+            print "[INFO] Converting JSON to HTML for file: $file\n";
+            my $convert_command = join(
+                " ",
+                (
+                $CONFIG->{python_bin_path},
+                "/home/javad/dev/chipstack-regress-ops/app/py/json_to_html.py",
+                $file
+                )
+            );
+            run_command($convert_command, $dir, 1,$verbosity);
+        } elsif ($file =~ /\.csv$/) {
+            print "[INFO] Converting CSV to HTML for file: $file\n";
+            my $convert_command = join(
+                " ",
+                (
+                $CONFIG->{python_bin_path},
+                "/home/javad/dev/chipstack-regress-ops/app/py/csv_to_html.py",
+                $file
+                )
+            );
+            run_command($convert_command, $dir, 1, $verbosity);
+        }
+    }
+}
+
+sub get_kpi_run_cmd {
+    my ($curr_branch, $cur_outdir) = @_;
+    my $python_path = join(
+        ":",
+        (
+            "$CONFIG->{chipstack_ai_repo}/common",
+            "$CONFIG->{chipstack_ai_repo}/client",
+            "$CONFIG->{chipstack_ai_repo}/kpi"
+        )
+    );
+    my $kpi_path     = "$CONFIG->{chipstack_ai_repo}/kpi/chipstack_kpi";
+    my $kpi_run_cmd = join(
+        " ",
+        (
+            "export PYTHONPATH=$python_path:\$PYTHONPATH ;",
+            $CONFIG->{python_bin_path},
+            "$kpi_path/app/unit_test_kpi_run.py",
+            "--design_file $kpi_path/configs/$CONFIG->{design_set}.yaml",
+            "--server_url $CONFIG->{server_url}",
+            "--eda_url $CONFIG->{eda_url}",
+            "--llm_flow $CONFIG->{llm_flow}",
+            "--syntax_check_provider $CONFIG->{syntax_check_provider}",
+            "--output_dir $cur_outdir/outdir_kpi",
+            "--enable_project_support $CONFIG->{enable_project_support}",
+            "--use_primitives $CONFIG->{use_primitives}",
+            "--iterate_simulation_results $CONFIG->{iterate_sim}",
+            "--num_random_restarts $CONFIG->{random_restarts}",
+            "--run_type $CONFIG->{run_type}"
+        )
+    );
+
+    return $kpi_run_cmd;    
+}
+
+sub grt_branch_info  {
+    my ($cur_outdir) = @_;
+    # Check if the directory exists
+    if ( !-d $cur_outdir ) {
+        die "[ERROR] Directory $cur_outdir does not exist.\n";
+    }
+    # Read and save the branch name, commit ID, and commit description
+    my ($branch_log) = glob("$cur_outdir/logs/*_git_branch*show-current/stdout.log");
+    my ($log_oneline) = glob("$cur_outdir/logs/*_git_log*oneline/stdout.log");
+
+    my ($branch_name, $commit_id, $commit_description);
+
+    if ( defined $branch_log && -f $branch_log ) {
+        print "[INFO] Reading branch log file: $branch_log\n" if $verbosity;
+        open my $fh, '<', $branch_log or die "[ERROR] Cannot open $branch_log: $!";
+        chomp($branch_name = <$fh>);
+        close $fh;
+    } else {
+        print "[WARNING] Branch log file not found or undefined: $branch_log\n" if $verbosity;
+    }
+
+    if ( defined $log_oneline && -f $log_oneline ) {
+        print "[INFO] Reading commit log file: $log_oneline\n" if $verbosity;
+        open my $fh, '<', $log_oneline or die "[ERROR] Cannot open $log_oneline: $!";
+        my $line = <$fh>;
+        chomp $line;
+        ($commit_id, $commit_description) = split(/\s+/, $line, 2);
+        close $fh;
+    } else {
+        print "[WARNING] Commit log file not found or undefined: $log_oneline\n" if $verbosity;
+    }
+    return ($branch_name, $commit_id, $commit_description);
 }
 
 sub main {
@@ -272,88 +398,36 @@ sub main {
             print "[INFO] Skipping Postgres cleanup.\n";
         }
         sync_repo( $curr_branch, $cur_outdir );
-        restartdocker( $CONFIG->{server_restart_docker}, $cur_outdir );
+        restart_docker( $CONFIG->{server_restart_docker}, $cur_outdir );
 
-        my $python_path = join(
-            ":",
-            (
-                "$CONFIG->{chipstack_ai_repo}/common",
-                "$CONFIG->{chipstack_ai_repo}/client",
-                "$CONFIG->{chipstack_ai_repo}/kpi"
-            )
-        );
+        my $kpi_run_cmd = get_kpi_run_cmd($curr_branch, $cur_outdir);
+        run_command( $kpi_run_cmd, 1,$cur_outdir );
 
-        my $kpi_path      = "$CONFIG->{chipstack_ai_repo}/kpi/chipstack_kpi";
-        my $final_command = join(
+        my ($branch_name, $commit_id, $commit_description) = grt_branch_info($cur_outdir);
+
+        print "[INFO] Branch Name: $branch_name\n" if defined $branch_name;
+        print "[INFO] Commit ID: $commit_id\n" if defined $commit_id;
+        print "[INFO] Commit Description: $commit_description\n" if defined $commit_description;
+
+        create_html_reports($cur_outdir);
+
+
+        my $upload_command = join(
             " ",
             (
-                "export PYTHONPATH=$python_path:\$PYTHONPATH ;",
                 $CONFIG->{python_bin_path},
-                "$kpi_path/app/unit_test_kpi_run.py",
-                "--design_file $kpi_path/configs/$CONFIG->{design_set}.yaml",
-                "--server_url $CONFIG->{server_url}",
-                "--eda_url $CONFIG->{eda_url}",
-                "--llm_flow $CONFIG->{llm_flow}",
-                "--syntax_check_provider $CONFIG->{syntax_check_provider}",
-                "--output_dir $cur_outdir/outdir_kpi",
-                "--enable_project_support $CONFIG->{enable_project_support}",
-                "--use_primitives $CONFIG->{use_primitives}",
-                "--iterate_simulation_results $CONFIG->{iterate_sim}",
-                "--num_random_restarts $CONFIG->{random_restarts}",
-                "--run_type $CONFIG->{run_type}"
+                "/home/javad/dev/chipstack-regress-ops/db/mongo.py",
+                "insert",
+                "$cur_outdir/outdir_kpi/Simulation/kpi.csv",
+                $curr_branch,
+                $CONFIG->{run_type},
+                $commit_id
             )
         );
-        run_command( $final_command, $cur_outdir );
+        run_command($upload_command, $cur_outdir, 1, $verbosity);
 
-        my @collected_files;
-        my $find_command = "find $cur_outdir/outdir_kpi -type f \\( -name '*.sv' -o -name '*.json' -o -name '*.csv' \\)";
-        print "[INFO] Running find command: $find_command\n" if $verbosity;
-
-        open my $find_fh, '-|', $find_command or die "[ERROR] Cannot execute find command: $!";
-        while (my $file = <$find_fh>) {
-            chomp $file;
-            push @collected_files, $file;
-        }
-        close $find_fh;
-
-
-        foreach my $file (@collected_files) {
-            if ($file =~ /\.sv$/) {
-                print "[INFO] Converting SystemVerilog to HTML for file: $file\n";
-                my $convert_command = join(
-                    " ",
-                    (
-                    $CONFIG->{python_bin_path},
-                    "/home/javad/dev/chipstack-regress-ops/app/py/systemverilog_to_html.py",
-                    $file
-                    )
-                );
-                run_command($convert_command, $cur_outdir, $verbosity);
-            } elsif ($file =~ /\.json$/) {
-                print "[INFO] Converting JSON to HTML for file: $file\n";
-                my $convert_command = join(
-                    " ",
-                    (
-                    $CONFIG->{python_bin_path},
-                    "/home/javad/dev/chipstack-regress-ops/app/py/json_to_html.py",
-                    $file
-                    )
-                );
-                run_command($convert_command, $cur_outdir, $verbosity);
-            } elsif ($file =~ /\.csv$/) {
-                print "[INFO] Converting CSV to HTML for file: $file\n";
-                my $convert_command = join(
-                    " ",
-                    (
-                    $CONFIG->{python_bin_path},
-                    "/home/javad/dev/chipstack-regress-ops/app/py/csv_to_html.py",
-                    $file
-                    )
-                );
-                run_command($convert_command, $cur_outdir, $verbosity);
-            }
-        }
     }
     print "[INFO] Script execution completed successfully.\n";
 }
+
 main();

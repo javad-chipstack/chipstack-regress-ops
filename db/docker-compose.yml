@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest  # Use the latest MongoDB image
+    container_name: kpi_mongodb
+    ports:
+      - "29756:27017"  # Expose MongoDB port 27017 inside the container, but map it to 29756 on the host machine
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=jenkins  # Set MongoDB root username to "jenkins"
+      - MONGO_INITDB_ROOT_PASSWORD=jenkins  # Set MongoDB root password to "jenkins"
+      - MONGO_INITDB_DATABASE=jenkins_db  # Create a custom database "jenkins_db"
+    volumes:
+      - mongodb_data:/data/db  # Persist MongoDB data across container restarts
+
+volumes:
+  mongodb_data:
+    driver: local  # Persist MongoDB data across container restarts
