@@ -11,6 +11,7 @@ use Proc::Background;
 use Proc::Background;
 use File::Path qw(rmtree make_path);
 use Symbol 'gensym';
+use POSIX qw(strftime);
 
 $| = 1;               # Flush output immediately
 my $verbosity = 0;    # Set to 1 for verbose output, 0 for silent
@@ -31,7 +32,8 @@ our $CONFIG = {
     use_primitives         => "false",
     iterate_sim            => "false",
     random_restarts        => 0,
-    run_type               => "Simulation"
+    run_type               => "Simulation",
+    jenkins_build_id       => "",
 };
 
 GetOptions(
@@ -48,7 +50,8 @@ GetOptions(
     "use_primitives=s"         => \$CONFIG->{use_primitives},
     "iterate_sim=s"            => \$CONFIG->{iterate_sim},
     "random_restarts=i"        => \$CONFIG->{random_restarts},
-    "run_type=s"               => \$CONFIG->{run_type}
+    "run_type=s"               => \$CONFIG->{run_type},
+    "jenkins_build_id=s"       => \$CONFIG->{jenkins_build_id},
 ) or die "[ERROR] Invalid command-line arguments\n";
 
 print "[INFO] Configuration Parameters:\n";
@@ -332,14 +335,14 @@ sub get_kpi_run_cmd {
             "--use_primitives $CONFIG->{use_primitives}",
             "--iterate_simulation_results $CONFIG->{iterate_sim}",
             "--num_random_restarts $CONFIG->{random_restarts}",
-            "--run_type $CONFIG->{run_type}"
+            "--run_type $CONFIG->{run_type}",
         )
     );
 
     return $kpi_run_cmd;    
 }
 
-sub grt_branch_info  {
+sub get_branch_info  {
     my ($cur_outdir) = @_;
     # Check if the directory exists
     if ( !-d $cur_outdir ) {
@@ -373,6 +376,12 @@ sub grt_branch_info  {
     return ($branch_name, $commit_id, $commit_description);
 }
 
+sub shell_escape {
+    my $s = shift;
+    $s =~ s/'/'\\''/g;      # Escape single quotes inside the string
+    return "'$s'";
+}
+
 sub main {
     setup_working_directory();
     if ( -d $CONFIG->{outdir} ) {
@@ -403,25 +412,28 @@ sub main {
         my $kpi_run_cmd = get_kpi_run_cmd($curr_branch, $cur_outdir);
         run_command( $kpi_run_cmd, $cur_outdir, 0);
 
-        my ($branch_name, $commit_id, $commit_description) = grt_branch_info($cur_outdir);
+        my ($branch_name, $commit_id, $commit_description) = get_branch_info($cur_outdir);
 
         print "[INFO] Branch Name: $branch_name\n" if defined $branch_name;
         print "[INFO] Commit ID: $commit_id\n" if defined $commit_id;
         print "[INFO] Commit Description: $commit_description\n" if defined $commit_description;
 
         create_html_reports($cur_outdir);
-
+        my $formatted_date = strftime "%Y-%m-%d %H:%M:%S", localtime;
 
         my $upload_command = join(
             " ",
             (
-                $CONFIG->{python_bin_path},
-                "/home/javad/dev/chipstack-regress-ops/db/mongo.py",
-                "insert",
-                "$cur_outdir/outdir_kpi/Simulation/kpi.csv",
-                $curr_branch,
-                $CONFIG->{run_type},
-                $commit_id
+                shell_escape($CONFIG->{python_bin_path}),
+                shell_escape("/home/javad/dev/chipstack-regress-ops/db/mongo.py"),
+                shell_escape("insert"),
+                shell_escape("$cur_outdir/outdir_kpi/Simulation/kpi.csv"),
+                shell_escape($curr_branch),
+                shell_escape($CONFIG->{run_type}),
+                shell_escape($commit_id),
+                shell_escape($commit_description),
+                shell_escape($formatted_date),
+                shell_escape($CONFIG->{jenkins_build_id}),
             )
         );
         run_command($upload_command, $cur_outdir, 1, $verbosity);

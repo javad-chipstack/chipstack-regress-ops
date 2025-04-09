@@ -11,16 +11,20 @@ import webbrowser
 import os
 import requests
 from pprint import pprint
+
+
 # MongoDB setup
 def get_mongo_collection():
     client = MongoClient("mongodb://jenkins:jenkins@localhost:29756/")
     db = client["jenkins_db"]
     return db["kpi_data"]
 
+
 # Get current time in PDT
 def get_pdt_now():
     tz = pytz.timezone("America/Los_Angeles")
     return datetime.now(tz)
+
 
 # Plot metrics for Simulation run_type and main branch
 
@@ -56,12 +60,18 @@ def plot_simulation_metrics():
             "Scenarios Generated": doc.get("Scenarios Generated", 0),
             "Passed Scenarios": doc.get("Passed Scenarios", 0),
             "Failed Scenarios": doc.get("Failed Scenarios", 0),
-            "Syntax Errors After First Gen": doc.get("Scenarios w/ Syntax Errors After First Generation", 0),
-            "Syntax Errors Remaining": doc.get("Scenarios w/ Syntax Errors Remaining", 0),
+            "Syntax Errors After First Gen": doc.get(
+                "Scenarios w/ Syntax Errors After First Generation", 0
+            ),
+            "Syntax Errors Remaining": doc.get(
+                "Scenarios w/ Syntax Errors Remaining", 0
+            ),
             "Percent Scenarios Passed": doc.get("Percent Scenarios Passed", 0.0),
             "Percent Scenarios Failed": doc.get("Percent Scenarios Failed", 0.0),
-            "Total Coverage": float(str(doc.get("Total Coverage", "0")).replace('%', '')), 
-            "timestamp": doc.get("timestamp", "Unknown")
+            "Total Coverage": float(
+                str(doc.get("Total Coverage", "0")).replace("%", "")
+            ),
+            "timestamp": doc.get("timestamp", "Unknown"),
         }
 
         for metric, value in metrics.items():
@@ -71,8 +81,8 @@ def plot_simulation_metrics():
             data[design_name][metric].append((timestamp, value))
 
     # pprint (docs)
-    pprint (data)
-    sys.exit (0)
+    pprint(data)
+    sys.exit(0)
 
     # Print data in a tabular format
     for design_name, metrics in data.items():
@@ -81,10 +91,14 @@ def plot_simulation_metrics():
         for metric, timestamps in metrics.items():
             for timestamp, value in timestamps.items():
                 table.append([metric, timestamp, value])
-        print(tabulate(table, headers=["Metric", "Timestamp", "Value"], tablefmt="fancy_grid"))
+        print(
+            tabulate(
+                table, headers=["Metric", "Timestamp", "Value"], tablefmt="fancy_grid"
+            )
+        )
         print("\n")
 
-    sys.exit (0)
+    sys.exit(0)
 
     # Write to HTML using Google Charts
     html_content = f"""
@@ -144,8 +158,16 @@ def plot_simulation_metrics():
         print(f"loader.js already exists at {loader_js_path}")
 
 
-# Upload CSV to MongoDB
-def upload_csv_to_mongodb(csv_file, branch_name, run_type, commit_id):
+# insert CSV to MongoDB
+def insert_csv_to_mongodb(
+    csv_file,
+    branch_name,
+    run_type,
+    commit_id,
+    commit_description,
+    commit_date,
+    jenkins_run_id,
+):
     collection = get_mongo_collection()
 
     try:
@@ -159,10 +181,14 @@ def upload_csv_to_mongodb(csv_file, branch_name, run_type, commit_id):
     df["run_type"] = run_type
     df["timestamp"] = now
     df["commit_id"] = commit_id
+    df["commit_description"] = commit_description
+    df["commit_date"] = commit_date
+    df["jenkins_run_id"] = jenkins_run_id
 
     data = df.to_dict(orient="records")
     result = collection.insert_many(data)
     print(f"Inserted {len(result.inserted_ids)} documents into MongoDB.")
+
 
 # Dump all data from MongoDB as a table
 def dump_database():
@@ -192,15 +218,26 @@ def dump_database():
 
     print(tabulate(rows, headers="keys", tablefmt="fancy_grid"))
 
+
 # Command line interface
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python script.py insert <csv_file_path> <branch_name> <run_type> <commit_id>")
-        print("  python script.py dump")
-        print("  python script.py plot")
-    elif sys.argv[1] == "insert" and len(sys.argv) == 6:
-        upload_csv_to_mongodb(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+        print(
+            "  python mongo.py insert <csv_file_path> <branch_name> <run_type> <commit_id> <commit_description> <commit_date> <jenkins_run_id>"
+        )
+        print("  python mongo.py dump")
+        print("  python mongo.py plot")
+    elif sys.argv[1] == "insert" and len(sys.argv) == 9:
+        insert_csv_to_mongodb(
+            sys.argv[2],  # csv_file_path
+            sys.argv[3],  # branch_name
+            sys.argv[4],  # run_type
+            sys.argv[5],  # commit_id
+            sys.argv[6],  # commit_description
+            sys.argv[7],  # commit_date
+            sys.argv[8],  # jenkins_run_id
+        )
     elif sys.argv[1] == "dump":
         dump_database()
     elif sys.argv[1] == "plot":
