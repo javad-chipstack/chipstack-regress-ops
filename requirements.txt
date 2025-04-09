@@ -12,3 +12,4 @@ codename
 pygments
 tabulate
 pytz
+matplotlib

@@ -401,7 +401,7 @@ sub main {
         restart_docker( $CONFIG->{server_restart_docker}, $cur_outdir );
 
         my $kpi_run_cmd = get_kpi_run_cmd($curr_branch, $cur_outdir);
-        run_command( $kpi_run_cmd, 1,$cur_outdir );
+        run_command( $kpi_run_cmd, $cur_outdir, 0);
 
         my ($branch_name, $commit_id, $commit_description) = grt_branch_info($cur_outdir);
 
