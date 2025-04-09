@@ -11,6 +11,7 @@ import webbrowser
 import os
 import requests
 from pprint import pprint
+import argparse
 
 
 # MongoDB setup
@@ -27,8 +28,6 @@ def get_pdt_now():
 
 
 # Plot metrics for Simulation run_type and main branch
-
-
 def plot_simulation_metrics():
     collection = get_mongo_collection()
     query = {"run_type": "Simulation", "branch": "main"}
@@ -221,26 +220,42 @@ def dump_database():
 
 # Command line interface
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage:")
-        print(
-            "  python mongo.py insert <csv_file_path> <branch_name> <run_type> <commit_id> <commit_description> <commit_date> <jenkins_run_id>"
-        )
-        print("  python mongo.py dump")
-        print("  python mongo.py plot")
-    elif sys.argv[1] == "insert" and len(sys.argv) == 9:
+    parser = argparse.ArgumentParser(description="MongoDB KPI Data Management Tool")
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+    
+    # Insert command
+    insert_parser = subparsers.add_parser("insert", help="Insert CSV data into MongoDB")
+    insert_parser.add_argument("--csv-file", required=True, help="Path to CSV file")
+    insert_parser.add_argument("--branch-name", required=True, help="Branch name")
+    insert_parser.add_argument("--run-type", required=True, help="Run type")
+    insert_parser.add_argument("--commit-id", required=True, help="Commit ID")
+    insert_parser.add_argument("--commit-description", required=True, help="Commit description")
+    insert_parser.add_argument("--commit-date", required=True, help="Commit date")
+    insert_parser.add_argument("--jenkins-run-id", required=True, help="Jenkins run ID")
+    
+    # Dump command
+    dump_parser = subparsers.add_parser("dump", help="Dump all data from MongoDB")
+    
+    # Plot command
+    plot_parser = subparsers.add_parser("plot", help="Plot simulation metrics")
+    
+    args = parser.parse_args()
+    
+    if args.command == "insert":
         insert_csv_to_mongodb(
-            sys.argv[2],  # csv_file_path
-            sys.argv[3],  # branch_name
-            sys.argv[4],  # run_type
-            sys.argv[5],  # commit_id
-            sys.argv[6],  # commit_description
-            sys.argv[7],  # commit_date
-            sys.argv[8],  # jenkins_run_id
+            args.csv_file,
+            args.branch_name,
+            args.run_type,
+            args.commit_id,
+            args.commit_description,
+            args.commit_date,
+            args.jenkins_run_id,
         )
-    elif sys.argv[1] == "dump":
+    elif args.command == "dump":
         dump_database()
-    elif sys.argv[1] == "plot":
+    elif args.command == "plot":
         plot_simulation_metrics()
+    elif args.command is None:
+        parser.print_help()
     else:
-        print("Invalid command or arguments.")
+        print("Invalid command.")

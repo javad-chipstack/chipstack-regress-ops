@@ -427,13 +427,13 @@ sub main {
                 shell_escape($CONFIG->{python_bin_path}),
                 shell_escape("/home/javad/dev/chipstack-regress-ops/db/mongo.py"),
                 shell_escape("insert"),
-                shell_escape("$cur_outdir/outdir_kpi/Simulation/kpi.csv"),
-                shell_escape($curr_branch),
-                shell_escape($CONFIG->{run_type}),
-                shell_escape($commit_id),
-                shell_escape($commit_description),
-                shell_escape($formatted_date),
-                shell_escape($CONFIG->{jenkins_build_id}),
+                shell_escape("--csv-file"), shell_escape("$cur_outdir/outdir_kpi/Simulation/kpi.csv"),
+                shell_escape("--branch-name"), shell_escape($curr_branch),
+                shell_escape("--run-type"), shell_escape($CONFIG->{run_type}),
+                shell_escape("--commit-id"), shell_escape($commit_id),
+                shell_escape("--commit-description"), shell_escape($commit_description),
+                shell_escape("--commit-date"), shell_escape($formatted_date),
+                shell_escape("--jenkins-run-id"), shell_escape($CONFIG->{jenkins_build_id}),
             )
         );
         run_command($upload_command, $cur_outdir, 1, $verbosity);
