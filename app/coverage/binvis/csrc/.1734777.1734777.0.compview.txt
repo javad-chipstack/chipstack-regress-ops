@@ -1,0 +1,9 @@
+{"vcs1":{"timestamp_begin":1757710923.846404523, "rt":0.37, "ut":0.23, "st":0.10}}
+{"vcselab":{"timestamp_begin":1757710924.292144127, "rt":0.27, "ut":0.17, "st":0.07}}
+{"link":{"timestamp_begin":1757710924.617394760, "rt":0.14, "ut":0.08, "st":0.05}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1757710923.618197942}
+{"VCS_COMP_START_TIME": 1757710923.618197942}
+{"VCS_COMP_END_TIME": 1757710924.823914183}
+{"VCS_USER_OPTIONS": "-sverilog -cm line jukebox.v"}
+{"vcs1": {"peak_mem": 314408}}
+{"vcselab": {"peak_mem": 178868}}

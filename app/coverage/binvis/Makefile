@@ -31,7 +31,7 @@ all:
 	./simv -cm line -l sim.log
 	g++ -g -I$(INC) -c visit.cc ${CFLAGS}
 	g++ -g -I$(INC) -o binvis binvis.cc $(VISIT)  -ldl -lm -lpthread  $(LIB) ${CFLAGS}
-	binvis simv.vdb >& binvis.log
+	./binvis simv.vdb >& binvis.log
 	@echo Output is in file binvis.log
 
 all_cg:
@@ -40,7 +40,7 @@ all_cg:
 	./simv -cm line -l sim.log
 	g++ -g -I$(INC) -c visit.cc ${CFLAGS}
 	g++ -g -I$(INC) -o binvis binvis.cc $(VISIT)  -ldl -lm -lpthread  $(LIB) ${CFLAGS}
-	binvis simv.vdb >& binvis.log
+	./binvis simv.vdb >& binvis.log
 	@echo Output is in file binvis.log
 
 
