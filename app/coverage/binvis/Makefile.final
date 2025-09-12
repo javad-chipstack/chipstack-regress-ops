@@ -1,0 +1,69 @@
+# Makefile for final C++ version of binvis
+# This version should generate identical output to the original
+
+CFLAGS:=-m64 
+
+plat:= $(shell vcs -platform )
+ifeq  ($(plat),linux)
+      CFLAGS:=-m32
+endif
+
+ifeq ($(plat),suse32)
+      CFLAGS:=-m32
+endif
+
+ifeq ($(wildcard $(LD_LIBRARY_PATH)),) 
+   LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(VCS_HOME)/${plat}/lib
+else 
+   LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(VCS_HOME)/${plat}/lib 
+endif 
+
+ifeq ($(wildcard $(VCS_HOME)/${plat}/lib/libucapi.so),)
+   LIB = $(VCS_HOME)/lib/libucapi.so
+   INC = $(VCS_HOME)/coverage/ucapi/include
+else
+   LIB = $(VCS_HOME)/${plat}/lib/libucapi.so
+   INC = $(VCS_HOME)/include
+endif
+
+VISIT = visit.o
+
+all:
+	rm -rf binvis_cpp_final visit.o urgReport ucli.key simv.daidir csrc simv sim.log simv.vdb binvis_cpp_final.log cm.log
+	vcs -sverilog -cm line jukebox.v
+	./simv -cm line -l sim.log
+	g++ -g -I$(INC) -c visit.cc ${CFLAGS}
+	g++ -g -I$(INC) -o binvis_cpp_final binvis_cpp_final.cc $(VISIT) -ldl -lm -lpthread $(LIB) ${CFLAGS}
+	./binvis_cpp_final simv.vdb >& binvis_cpp_final.log
+	@echo Output is in file binvis_cpp_final.log
+
+binvis_cpp_final: binvis_cpp_final.cc $(VISIT)
+	g++ -g -I$(INC) -o binvis_cpp_final binvis_cpp_final.cc $(VISIT) -ldl -lm -lpthread $(LIB) ${CFLAGS}
+
+$(VISIT) : visit.cc visit.hh
+	g++ -g -I$(INC) -c visit.cc ${CFLAGS}
+
+clean:
+	rm -rf binvis_cpp_final visit.o urgReport ucli.key simv.daidir csrc simv sim.log simv.vdb binvis_cpp_final.log cm.log
+
+test: jukebox.v binvis_cpp_final
+	vcs -sverilog -cm line jukebox.v
+	./simv -cm line -l sim2.log 
+
+run: binvis_cpp_final test
+	./binvis_cpp_final simv.vdb >& binvis_cpp_final.log
+	@echo Output is in file binvis_cpp_final.log
+
+# Target to compare outputs
+compare: binvis_cpp_final binvis
+	./binvis simv.vdb >& binvis_original.log
+	./binvis_cpp_final simv.vdb >& binvis_cpp_final.log
+	@echo "Comparing outputs..."
+	@if diff binvis_original.log binvis_cpp_final.log > /dev/null; then \
+		echo "SUCCESS: Outputs are identical!"; \
+	else \
+		echo "DIFFERENCES FOUND:"; \
+		diff binvis_original.log binvis_cpp_final.log | head -20; \
+	fi
+
+.PHONY: all clean test run compare
