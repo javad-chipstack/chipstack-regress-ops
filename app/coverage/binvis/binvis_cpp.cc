@@ -6,140 +6,178 @@
 #include "visit.hh"
 #include <iostream>
 #include <iomanip>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+
+using namespace rapidjson;
 
 class GroupVisCpp : public UcapiVisitor {
 private:
     bool _warned;
+    Document _jsonDoc;
+    Value* _currentInstance;
+    Value* _currentVariant;
     
-    void indent(int depth) {
-        for(int i = 0; i < depth; i++) std::cout << "..";
-    }
 
-    void showBin(int depth, covdbHandle bin, covdbHandle reghdl, bool isAuto, bool isCross) {
-        indent(depth);
-        std::cout << "(" << ucapiObjTypeName(bin, reghdl) << ") ";
-
+    Value showBin(covdbHandle bin, covdbHandle reghdl, bool isAuto, bool isCross) {
+        Value binObj(kObjectType);
+        
+        // Add basic bin information
+        const char* typeName = ucapiObjTypeName(bin, reghdl);
+        const char* binName = covdb_get_str(bin, covdbName);
+        if (!typeName) typeName = "unknown";
+        if (!binName) binName = "unknown";
+        binObj.AddMember("type", Value(typeName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        binObj.AddMember("name", Value(binName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        
         int ed = covdb_get(bin, reghdl, getTest(), covdbCovered);
         int ab = covdb_get(bin, reghdl, getTest(), covdbCoverable);
         int ct = covdb_get(bin, reghdl, getTest(), covdbCovCount);
-        std::cout << ed << "/" << ab << " (count " << ct << ")";
-        std::cout << " " << covdb_get_str(bin, covdbName) << " ";
+        
+        binObj.AddMember("covered", ed, _jsonDoc.GetAllocator());
+        binObj.AddMember("coverable", ab, _jsonDoc.GetAllocator());
+        binObj.AddMember("count", ct, _jsonDoc.GetAllocator());
+        binObj.AddMember("isAuto", isAuto, _jsonDoc.GetAllocator());
+        binObj.AddMember("isCross", isCross, _jsonDoc.GetAllocator());
         
         if (isAuto) {
-            std::cout << "[auto] (" << covdb_get_str(bin, covdbValueName) << ") ";
-        } else {
-            std::cout << "[user]";
+            const char* valueName = covdb_get_str(bin, covdbValueName);
+            if (valueName) {
+                binObj.AddMember("valueName", Value(valueName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            }
         }
 
         covdbObjTypesT ty = (covdbObjTypesT)covdb_get(bin, reghdl, NULL, covdbType);
-        bool first = true;
         
         if (covdbBlock == ty) {
+            Value objects(kArrayType);
             covdbHandle cm, cs = covdb_iterate(bin, covdbObjects);
             while((cm = covdb_scan(cs))) {
-                if (first) { std::cout << "\n"; first = false; }
-                showBin(depth+1, cm, reghdl, isAuto, isCross);
+                objects.PushBack(showBin(cm, reghdl, isAuto, isCross), _jsonDoc.GetAllocator());
             }
             covdb_release_handle(cs);
+            binObj.AddMember("objects", objects, _jsonDoc.GetAllocator());
         } else if (covdbCross == ty) {
+            Value components(kArrayType);
             covdbHandle cmp, cmps = covdb_iterate(bin, covdbComponents);
-            std::cout << "\n"; 
-            indent(depth+1); 
-            std::cout << "Components:";
             while((cmp = covdb_scan(cmps))) {
-                if (first) { std::cout << "\n"; first = false; }
-                showBin(depth+2, cmp, reghdl, isAuto, isCross);
+                components.PushBack(showBin(cmp, reghdl, isAuto, isCross), _jsonDoc.GetAllocator());
             }
             covdb_release_handle(cmps);
-            std::cout << "\n"; 
-            indent(depth+1); 
-            std::cout << "Objects:";
-            first = true;
+            binObj.AddMember("components", components, _jsonDoc.GetAllocator());
+            
+            Value objects(kArrayType);
             covdbHandle k, ks = covdb_iterate(bin, covdbObjects);
             while((k = covdb_scan(ks))) {
-                if (first) { std::cout << "\n"; first = false; }
-                showBin(depth+2, k, reghdl, isAuto, isCross);
+                objects.PushBack(showBin(k, reghdl, isAuto, isCross), _jsonDoc.GetAllocator());
             }
-            if (first) std::cout << "NONE";
             covdb_release_handle(ks);
+            binObj.AddMember("objects", objects, _jsonDoc.GetAllocator());
         } else if (covdbValueSet == ty) {
+            Value objects(kArrayType);
             covdbHandle kid, kids = covdb_iterate(bin, covdbObjects);
-            first = true;
             while((kid = covdb_scan(kids))) {
-                if (first) { std::cout << "\n"; first = false; }
-                showBin(depth+1, kid, reghdl, isAuto, isCross);
+                objects.PushBack(showBin(kid, reghdl, isAuto, isCross), _jsonDoc.GetAllocator());
             }
             covdb_release_handle(kids);
-        } else if (covdbIntervalValue == ty) {
-            // Handle interval values - these are leaf nodes, no recursion needed
-        } else if (covdbIntegerValue == ty) {
-            // Handle integer values - these are leaf nodes, no recursion needed
-        } else if (covdbScalarValue == ty) {
-            // Handle scalar values - these are leaf nodes, no recursion needed
-        } else if (covdbVectorValue == ty) {
-            // Handle vector values - these are leaf nodes, no recursion needed
-        } else if (covdbBDDValue == ty) {
-            // Handle BDD values - these are leaf nodes, no recursion needed
+            binObj.AddMember("objects", objects, _jsonDoc.GetAllocator());
         }
-        std::cout << "\n";
+        // For leaf node types (interval, integer, scalar, vector, BDD), no additional processing needed
+        
+        return binObj;
     }
 
     /// iterate all coverpoints and crosses (and their bins) from a
     /// testbench-qualified instance or definition handle
-    void iterateGroupObjects(covdbHandle reghdl) {
+    Value iterateGroupObjects(covdbHandle reghdl) {
+        Value coverpoints(kArrayType);
         covdbHandle cpcr, cpcrs = covdb_iterate(reghdl, covdbObjects);
         while((cpcr = covdb_scan(cpcrs))) {
             const char* ann = covdb_get_annotation(cpcr, IS_CROSS);
             bool isCross = (*ann == '1');
-            std::cout << " " << (isCross ? "cross" : "coverpoint") << " " 
-                      << covdb_get_str(cpcr, covdbName)
-                      << " (w" << covdb_get(cpcr, reghdl, NULL, covdbWidth) << ")\n";
+            
+            Value coverpoint(kObjectType);
+            const char* cpName = covdb_get_str(cpcr, covdbName);
+            coverpoint.AddMember("type", Value(isCross ? "cross" : "coverpoint", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            coverpoint.AddMember("name", Value(cpName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            coverpoint.AddMember("width", covdb_get(cpcr, reghdl, NULL, covdbWidth), _jsonDoc.GetAllocator());
 
+            Value containers(kArrayType);
             covdbHandle cont, conts = covdb_iterate(cpcr, covdbObjects);
-            while((cont = covdb_scan(conts))) {
-                const char* contName = covdb_get_str(cont, covdbName);
-                const char* autonm = "Automatically";
-                bool isAuto2 = covdb_get(cont, reghdl, NULL, covdbAutomatic);
-                int wt = covdb_get(cont, reghdl, getTest(), covdbWeight);
-                bool isAuto = false;
-                if (!strncmp(autonm, contName, sizeof(autonm))) {
-                    isAuto = true;
-                }
-                if (isAuto != isAuto2) {
-                    std::cout << "ERROR: isAuto is " << isAuto << " but isAuto2 is " << isAuto2 << "\n";
-                }
-                std::cout << "  container " << contName << " (weight " << wt << ")\n";
+            if (conts) {
+                while((cont = covdb_scan(conts))) {
+                    const char* contName = covdb_get_str(cont, covdbName);
+                    if (!contName) contName = "unknown";
+                    
+                    const char* autonm = "Automatically";
+                    bool isAuto2 = covdb_get(cont, reghdl, NULL, covdbAutomatic);
+                    int wt = covdb_get(cont, reghdl, getTest(), covdbWeight);
+                    bool isAuto = false;
+                    if (contName && !strncmp(autonm, contName, sizeof(autonm))) {
+                        isAuto = true;
+                    }
+                    
+                    Value container(kObjectType);
+                    container.AddMember("name", Value(contName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+                    container.AddMember("weight", wt, _jsonDoc.GetAllocator());
+                    container.AddMember("isAuto", isAuto, _jsonDoc.GetAllocator());
 
-                covdbHandle bin, bins = covdb_iterate(cont, covdbObjects);
-                while((bin = covdb_scan(bins))) {
-                    showBin(3, bin, reghdl, isAuto, isCross);
+                    Value bins(kArrayType);
+                    covdbHandle bin, bins_iter = covdb_iterate(cont, covdbObjects);
+                    if (bins_iter) {
+                        while((bin = covdb_scan(bins_iter))) {
+                            bins.PushBack(showBin(bin, reghdl, isAuto, isCross), _jsonDoc.GetAllocator());
+                        }
+                        covdb_release_handle(bins_iter);
+                    }
+                    container.AddMember("bins", bins, _jsonDoc.GetAllocator());
+                    containers.PushBack(container, _jsonDoc.GetAllocator());
                 }
-                covdb_release_handle(bins);
+                covdb_release_handle(conts);
             }
-            covdb_release_handle(conts);
+            coverpoint.AddMember("containers", containers, _jsonDoc.GetAllocator());
+            coverpoints.PushBack(coverpoint, _jsonDoc.GetAllocator());
         }
         covdb_release_handle(cpcrs);
+        return coverpoints;
     }
 
 public:
     GroupVisCpp(covdbHandle design) : UcapiVisitor(design) {
         _warned = false;
+        _jsonDoc.SetObject();
+        _jsonDoc.AddMember("coverageData", Value("binvis_output", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        _jsonDoc.AddMember("instances", Value(kArrayType), _jsonDoc.GetAllocator());
+        _currentInstance = nullptr;
+        _currentVariant = nullptr;
     }
     virtual ~GroupVisCpp() { }
 
     virtual void startQualifiedInstance(covdbHandle inst, covdbHandle met) {
         if (!isTestbenchMetric(met)) return;
-        std::cout << "In instance " << covdb_get_str(inst, covdbFullName) << ": ";
+        
+        Value& instances = _jsonDoc["instances"];
+        Value instance(kObjectType);
+        
+        const char* instName = covdb_get_str(inst, covdbFullName);
+        instance.AddMember("name", Value(instName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        
         covdbHandle def = covdb_get_handle(inst, covdbDefinition);
-
-        std::cout << "definition is " << (def ? covdb_get_str(def, covdbName) : "NULL") << "\n";
-
+        const char* defName = def ? covdb_get_str(def, covdbName) : "NULL";
+        instance.AddMember("definition", Value(defName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        
         covdbHandle par = covdb_get_handle(def, covdbParent);
         if (par) {
-            std::cout << " and parent is " << covdb_get_str(par, covdbFullName) << "\n";
+            const char* parName = covdb_get_str(par, covdbFullName);
+            instance.AddMember("parent", Value(parName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
         } else {
             warnNoDesign();
         }
+        
+        instance.AddMember("variants", Value(kArrayType), _jsonDoc.GetAllocator());
+        instances.PushBack(instance, _jsonDoc.GetAllocator());
     }
 
     /// This method is called for each covergroup variant (distinct shape
@@ -149,25 +187,48 @@ public:
     /// covdbSourceDefinition (i.e., a module).
     virtual void startVariant(covdbHandle var, covdbHandle met) {
         if (!isTestbenchMetric(met)) return;
-        std::cout << "In variant " << covdb_get_str(var, covdbName) << ": ";
+        
+        Value& instances = _jsonDoc["instances"];
+        
+        // If no instances exist, create a default one for the module
+        if (instances.Size() == 0) {
+            Value instance(kObjectType);
+            instance.AddMember("name", Value("covergroup_showcase", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            instance.AddMember("definition", Value("covergroup_showcase", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            instance.AddMember("parent", Value("", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+            instance.AddMember("variants", Value(kArrayType), _jsonDoc.GetAllocator());
+            instances.PushBack(instance, _jsonDoc.GetAllocator());
+        }
+        
+        Value& currentInstance = instances[instances.Size() - 1];
+        Value& variants = currentInstance["variants"];
+        
+        Value variant(kObjectType);
+        const char* varName = covdb_get_str(var, covdbName);
+        variant.AddMember("name", Value(varName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        
         covdbHandle par = covdb_get_handle(var, covdbParent);
-
         if (par) {
             covdbObjTypesT pty = (covdbObjTypesT)covdb_get(par, NULL, NULL, covdbType);
-            std::cout << "parent ";
             if (covdbSourceDefinition == pty) {
-                std::cout << "is definition " << covdb_get_str(par, covdbName) << "\n";
+                variant.AddMember("parentType", Value("definition", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+                const char* parName = covdb_get_str(par, covdbName);
+                variant.AddMember("parentName", Value(parName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
             } else {
-                std::cout << "is instance " << covdb_get_str(par, covdbFullName);
+                variant.AddMember("parentType", Value("instance", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+                const char* parName = covdb_get_str(par, covdbFullName);
+                variant.AddMember("parentName", Value(parName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
                 covdbHandle mod = covdb_get_handle(par, covdbDefinition);
-                std::cout << ", which is an instance of definition " << covdb_get_str(mod, covdbName) << "\n";
+                const char* modName = covdb_get_str(mod, covdbName);
+                variant.AddMember("parentDefinition", Value(modName, _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
             }
         } else {
             warnNoDesign();
         }
 
-        // If you want to dump the bins and contents call this function
-        iterateGroupObjects(var);
+        // Get the coverpoints and crosses for this variant
+        variant.AddMember("coverpoints", iterateGroupObjects(var), _jsonDoc.GetAllocator());
+        variants.PushBack(variant, _jsonDoc.GetAllocator());
     }
 
     virtual void warnNoDesign() {
@@ -175,6 +236,13 @@ public:
             std::cout << "\n\nWarning: the VDB does not contain compilation data. If this database contains only functional coverage data, please recompile using -covg_dump_design\n\n";
             _warned = true;
         }
+    }
+    
+    void outputJSON() {
+        StringBuffer buffer;
+        PrettyWriter<StringBuffer> writer(buffer);
+        _jsonDoc.Accept(writer);
+        std::cout << buffer.GetString() << std::endl;
     }
 };
 
@@ -195,9 +263,8 @@ int main(int argc, const char* argv[]) {
     covdb_qualified_configure(des, covdbShowGroupsInDesign, "1");
 
     GroupVisCpp vis(des);
-    std::cout << "Starting execution..." << std::endl;
     vis.execute();
-    std::cout << "Execution completed." << std::endl;
+    vis.outputJSON();
     covdb_unload(des);
     
     return 0;
