@@ -57,13 +57,7 @@ VISIT_HDR = $(SRC_DIR)/visit.hh
 # Executable
 BINVIS_CPP = $(BUILD_DIR)/binvis_cpp
 
-# Simulation artifacts (all in build directory)
-SIMV = $(BUILD_DIR)/simv
-VDB = $(BUILD_DIR)/simv.vdb
-SIM_LOG = $(BUILD_DIR)/sim.log
-
 # Output files
-OUTPUT_LOG = $(BUILD_DIR)/binvis_cpp.log
 JSON_OUTPUT = $(BUILD_DIR)/coverage_output.json
 
 # =============================================================================
@@ -84,6 +78,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  help          - Show this help message"
+	@echo "  config        - Show current configuration"
 	@echo "  build         - Build binvis_cpp executable (PRE-VDB)"
 	@echo "  sim           - Compile and run simulation to create VDB (PRE-VDB)"
 	@echo "  json          - Complete workflow: build + sim + analysis (PRE-VDB + POST-VDB)"
@@ -98,6 +93,19 @@ help:
 	@echo "  # Use existing VDB file"
 	@echo "  make VDB_FILE=/path/to/existing/simv.vdb json-from-vdb"
 	@echo "  make VDB_FILE=../other_project/build/simv.vdb json-from-vdb"
+	@echo ""
+
+# Show current configuration
+config:
+	@echo "Current Configuration:"
+	@echo "  BUILD_DIR:     $(BUILD_DIR)"
+	@echo "  VDB_FILE:      $(VDB_FILE)"
+	@echo "  DESIGN_FILE:   $(if $(DESIGN_FILE),$(DESIGN_FILE),not set)"
+	@echo "  Platform:      $(plat)"
+	@echo "  CFLAGS:        $(CFLAGS)"
+	@echo "  VCS_HOME:      $(VCS_HOME)"
+	@echo "  Library:       $(LIB)"
+	@echo "  Include:       $(INC)"
 	@echo ""
 
 # =============================================================================
@@ -121,8 +129,8 @@ $(BUILD_DIR):
 
 # Utility function for design file validation
 check_design_file:
-	@test -n "$(DESIGN_FILE)" || (echo "Error: DESIGN_FILE is not set" && exit 1)
-	@test -f "$(DESIGN_FILE)" || (echo "Error: Design file $(DESIGN_FILE) not found" && exit 1)
+	@test -n "$(DESIGN_FILE)" || (echo "Error: DESIGN_FILE is not set. Use: make DESIGN_FILE=path/to/file.sv json" && exit 1)
+	@test -f "$(DESIGN_FILE)" || (echo "Error: Design file '$(DESIGN_FILE)' not found" && exit 1)
 
 # Compile and run simulation to create VDB
 sim: check_design_file | $(BUILD_DIR)
@@ -136,7 +144,7 @@ sim: check_design_file | $(BUILD_DIR)
 
 # Complete workflow: build tools, run simulation, generate JSON
 json: build sim
-	@echo "Generating JSON coverage output from $(VDB_FILE)..."
+	@echo "Generating JSON coverage output from simv.vdb..."
 	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > coverage_output.json
 	@echo "JSON coverage data written to $(JSON_OUTPUT)"
 
@@ -148,8 +156,8 @@ json-from-vdb: build check_vdb_file
 
 # Utility function for VDB file validation
 check_vdb_file:
-	@test -n "$(VDB_FILE)" || (echo "Error: VDB_FILE is not set" && exit 1)
-	@test -d "$(VDB_FILE)" || (echo "Error: VDB directory $(VDB_FILE) not found" && exit 1)
+	@test -n "$(VDB_FILE)" || (echo "Error: VDB_FILE is not set. Use: make VDB_FILE=/path/to/simv.vdb json-from-vdb" && exit 1)
+	@test -d "$(VDB_FILE)" || (echo "Error: VDB directory '$(VDB_FILE)' not found" && exit 1)
 
 # Clean all artifacts (both pre-VDB and post-VDB)
 clean:
@@ -159,4 +167,4 @@ clean:
 # =============================================================================
 # Phony targets
 # =============================================================================
-.PHONY: help build sim json json-from-vdb check_design_file check_vdb_file clean
+.PHONY: help config build sim json json-from-vdb check_design_file check_vdb_file clean $(BUILD_DIR)

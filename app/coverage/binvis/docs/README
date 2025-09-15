@@ -1,6 +1,6 @@
-# BinVis - Coverage Analysis Tool
+# BinVis C++ - JSON Coverage Analysis Tool
 
-A comprehensive tool for analyzing VCS coverage data and generating both text and JSON output formats.
+A comprehensive tool for analyzing VCS coverage data and generating structured JSON output for SystemVerilog covergroups.
 
 ## Directory Structure
 
@@ -20,102 +20,140 @@ binvis/
 ├── docs/                  # Documentation
 │   └── README
 ├── build/                 # Build artifacts (generated)
-└── Makefile              # Unified build system
+└── Makefile              # Modern build system
 ```
 
 ## Features
 
-- **Dual Output Formats**: Text output (original) and JSON output (structured)
+- **JSON Output**: Structured JSON format for easy integration with other tools
 - **Coverage Analysis**: Comprehensive analysis of SystemVerilog covergroups
 - **Cross Coverage**: Support for cross coverage analysis
 - **Transition Coverage**: State transition coverage analysis
 - **Conditional Coverage**: Conditional coverage analysis
 - **Hit Counts**: Detailed hit count information for each bin
+- **Modern Build System**: Clean, organized Makefile with helpful targets
+
+## Workflow
+
+The tool follows a **PRE-VDB → POST-VDB** workflow:
+
+- **PRE-VDB**: Build tools + Run simulation → Create VDB file
+- **POST-VDB**: Analyze VDB → Generate JSON output
 
 ## Quick Start
 
-1. **Build the tools**:
+1. **Show help and configuration**:
    ```bash
-   make all
+   make help
+   make config
    ```
 
-2. **Run analysis on default example**:
+2. **Complete workflow with example**:
    ```bash
-   make json
+   make DESIGN_FILE=examples/covergroup_showcase.sv json
    ```
 
-3. **Run analysis on specific design**:
+3. **Use existing VDB file**:
    ```bash
-   make DESIGN_FILE=examples/jukebox.v json
+   make VDB_FILE=/path/to/existing/simv.vdb json-from-vdb
    ```
 
 ## Available Targets
 
-- `make help` - Show help message
-- `make all` - Build both versions
-- `make binvis` - Build original text version
-- `make binvis_cpp` - Build JSON version
-- `make test` - Compile and run simulation
-- `make json` - Generate JSON coverage output
-- `make compare` - Compare both versions
-- `make clean` - Clean build artifacts
-- `make clean-all` - Clean everything
+- `make help` - Show help message with usage examples
+- `make config` - Show current configuration (paths, platform, etc.)
+- `make build` - Build binvis_cpp executable (PRE-VDB)
+- `make sim` - Compile and run simulation to create VDB (PRE-VDB)
+- `make json` - Complete workflow: build + sim + analysis (PRE-VDB + POST-VDB)
+- `make json-from-vdb` - Generate JSON from existing VDB file (POST-VDB only)
+- `make clean` - Clean all build and simulation artifacts
 
 ## Examples
 
 ### Basic Usage
 ```bash
-# Generate JSON output for covergroup showcase
-make json
+# Complete workflow with covergroup showcase
+make DESIGN_FILE=examples/covergroup_showcase.sv json
 
-# Generate JSON output for jukebox example
+# Complete workflow with jukebox example
 make DESIGN_FILE=examples/jukebox.v json
 
-# Compare original vs C++ versions
-make compare
+# Use existing VDB file
+make VDB_FILE=../other_project/build/simv.vdb json-from-vdb
 ```
 
-### Advanced Usage
+### Step-by-Step Usage
 ```bash
-# Build debug version
-make debug
+# 1. Build the analysis tool
+make build
 
-# Show configuration
-make show-config
+# 2. Run simulation to create VDB
+make DESIGN_FILE=examples/covergroup_showcase.sv sim
 
-# Clean everything
-make clean-all
+# 3. Generate JSON from VDB
+make VDB_FILE=build/simv.vdb json-from-vdb
 ```
 
-## Output Formats
+### Configuration and Debugging
+```bash
+# Show current configuration
+make config
 
-### Text Output (binvis)
-Human-readable text format showing coverage details for each covergroup, coverpoint, and bin.
+# Show help with all options
+make help
+
+# Clean build artifacts
+make clean
+```
+
+## Output Format
 
 ### JSON Output (binvis_cpp)
 Structured JSON format with detailed coverage information:
-- Instance information
-- Covergroup variants
-- Coverpoint details
-- Bin information with hit counts
-- Cross coverage data
+- **Instance information**: Module and instance details
+- **Covergroup variants**: Different covergroup instantiations
+- **Coverpoint details**: Individual coverpoint information
+- **Bin information**: Hit counts and coverage status for each bin
+- **Cross coverage data**: Cross coverage relationships and statistics
+- **Coverage statistics**: Overall coverage percentages and metrics
+
+The JSON output is written to `build/coverage_output.json` and can be easily integrated with other analysis tools or web interfaces.
 
 ## Requirements
 
-- VCS (Synopsys)
-- UCAPI library
-- C++ compiler with C++11 support
-- RapidJSON library (for JSON output)
+- **VCS (Synopsys)**: For SystemVerilog compilation and simulation
+- **UCAPI library**: VCS coverage API library
+- **C++ compiler**: With C++11 support (g++ recommended)
+- **RapidJSON library**: For JSON output generation
 
 ## Troubleshooting
 
-1. **VCS not found**: Ensure VCS_HOME is set correctly
-2. **Library not found**: Check UCAPI library path
-3. **Compilation errors**: Verify C++11 support and RapidJSON installation
+1. **VCS not found**: 
+   - Ensure `VCS_HOME` environment variable is set correctly
+   - Verify VCS is in your PATH
+
+2. **Library not found**: 
+   - Check UCAPI library path in Makefile
+   - Verify `$(VCS_HOME)/lib/libucapi.so` exists
+
+3. **Compilation errors**: 
+   - Verify C++11 support: `g++ --version`
+   - Check RapidJSON installation
+   - Run `make config` to see current configuration
+
+4. **Design file not found**:
+   - Use absolute or relative paths: `make DESIGN_FILE=examples/jukebox.v json`
+   - Check file exists: `ls -la examples/`
+
+5. **VDB file not found**:
+   - Ensure simulation completed successfully
+   - Check VDB path: `ls -la build/simv.vdb`
 
 ## Recent Changes
 
-- Fixed covergroup detail extraction in JSON output
-- Reorganized project structure
-- Unified Makefile system
-- Improved error handling and debugging
+- **Modernized Makefile**: Clean, organized build system with helpful targets
+- **Improved workflow**: Clear PRE-VDB → POST-VDB separation
+- **Enhanced error handling**: Better validation and user guidance
+- **Configuration display**: `make config` shows current settings
+- **Flexible VDB usage**: Support for existing VDB files
+- **Better documentation**: Comprehensive README with examples
