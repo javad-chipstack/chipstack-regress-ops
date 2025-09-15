@@ -4,6 +4,6 @@ __pycache__
 
 outdir
 
-**/coverage/func_cov_vdb2json/build/**
+**/coverage/dump_func_cov_to_json/build/**
 
 
