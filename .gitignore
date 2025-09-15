@@ -4,5 +4,6 @@ __pycache__
 
 outdir
 
-**/coverage/binvis/build/
+**/coverage/func_cov_vdb2json/build/**
+
 
