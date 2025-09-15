@@ -1,0 +1,121 @@
+# BinVis - Coverage Analysis Tool
+
+A comprehensive tool for analyzing VCS coverage data and generating both text and JSON output formats.
+
+## Directory Structure
+
+```
+binvis/
+├── src/                    # Source code
+│   ├── binvis.cc          # Original binvis (text output)
+│   ├── binvis_cpp.cc      # C++ version (JSON output)
+│   ├── visit.cc           # UCAPI visitor implementation
+│   └── visit.hh           # Visitor header
+├── examples/              # Example SystemVerilog designs
+│   ├── covergroup_showcase.sv
+│   └── jukebox.v
+├── tests/                 # Test files and utilities
+│   ├── test_rapidjson.cpp
+│   └── test_simple
+├── docs/                  # Documentation
+│   └── README
+├── build/                 # Build artifacts (generated)
+└── Makefile              # Unified build system
+```
+
+## Features
+
+- **Dual Output Formats**: Text output (original) and JSON output (structured)
+- **Coverage Analysis**: Comprehensive analysis of SystemVerilog covergroups
+- **Cross Coverage**: Support for cross coverage analysis
+- **Transition Coverage**: State transition coverage analysis
+- **Conditional Coverage**: Conditional coverage analysis
+- **Hit Counts**: Detailed hit count information for each bin
+
+## Quick Start
+
+1. **Build the tools**:
+   ```bash
+   make all
+   ```
+
+2. **Run analysis on default example**:
+   ```bash
+   make json
+   ```
+
+3. **Run analysis on specific design**:
+   ```bash
+   make DESIGN_FILE=examples/jukebox.v json
+   ```
+
+## Available Targets
+
+- `make help` - Show help message
+- `make all` - Build both versions
+- `make binvis` - Build original text version
+- `make binvis_cpp` - Build JSON version
+- `make test` - Compile and run simulation
+- `make json` - Generate JSON coverage output
+- `make compare` - Compare both versions
+- `make clean` - Clean build artifacts
+- `make clean-all` - Clean everything
+
+## Examples
+
+### Basic Usage
+```bash
+# Generate JSON output for covergroup showcase
+make json
+
+# Generate JSON output for jukebox example
+make DESIGN_FILE=examples/jukebox.v json
+
+# Compare original vs C++ versions
+make compare
+```
+
+### Advanced Usage
+```bash
+# Build debug version
+make debug
+
+# Show configuration
+make show-config
+
+# Clean everything
+make clean-all
+```
+
+## Output Formats
+
+### Text Output (binvis)
+Human-readable text format showing coverage details for each covergroup, coverpoint, and bin.
+
+### JSON Output (binvis_cpp)
+Structured JSON format with detailed coverage information:
+- Instance information
+- Covergroup variants
+- Coverpoint details
+- Bin information with hit counts
+- Cross coverage data
+
+## Requirements
+
+- VCS (Synopsys)
+- UCAPI library
+- C++ compiler with C++11 support
+- RapidJSON library (for JSON output)
+
+## Troubleshooting
+
+1. **VCS not found**: Ensure VCS_HOME is set correctly
+2. **Library not found**: Check UCAPI library path
+3. **Compilation errors**: Verify C++11 support and RapidJSON installation
+
+## Recent Changes
+
+- Fixed covergroup detail extraction in JSON output
+- Reorganized project structure
+- Unified Makefile system
+- Improved error handling and debugging

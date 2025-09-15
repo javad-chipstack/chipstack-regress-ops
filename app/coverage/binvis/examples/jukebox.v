@@ -44,7 +44,7 @@ module cd (
     covergroup song(bit grd2) @clk;
       type_option.per_instance = 1;
       coverpoint track {
-        bins t[] = {[1 : 19]};
+        bins t4_bin[] = {[1 : 19]};
         ignore_bins ig = {[20 : 255]} iff (grd2);
         type_option.comment = "TAG-SKL";
       }
@@ -725,9 +725,9 @@ module test_jukebox;
     endgroup
 
     covergroup trackgroup() @(posedge clk);
-      coverpoint track1 {bins t[] = {[1 : 19]};}
-      coverpoint track2 {bins t[] = {[1 : 19]};}
-      coverpoint track3 {bins t[] = {[1 : 19]};}
+      coverpoint track1 {bins t1_bin[] = {[1 : 19]};}
+      coverpoint track2 {bins t2_bin[] = {[1 : 19]};}
+      coverpoint track3 {bins t3_bin[] = {[1 : 19]};}
       cross track1, track2, track3;
     endgroup  // trackgroup
 
