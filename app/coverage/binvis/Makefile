@@ -52,7 +52,7 @@ $(VISIT) : visit.cc visit.hh
 	g++ -g -I$(INC) -c visit.cc ${CFLAGS}
 
 clean:
-	rm -rf binvis visit.o urgReport ucli.key simv.daidir csrc simv sim.log simv.vdb binvis.log cm.log
+	rm -rf binvis visit.o urgReport ucli.key simv.daidir csrc simv sim.log simv.vdb binvis.log cm.log sim2.log a1.txt a2.txt sim2.log
 
 test: jukebox.v binvis
 	vcs -sverilog -cm line jukebox.v
