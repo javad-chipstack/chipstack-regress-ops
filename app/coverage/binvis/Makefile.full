@@ -1,5 +1,5 @@
 # =============================================================================
-# BinVis C++ - JSON Coverage Analysis Tool
+# BinVis - Coverage Analysis Tool
 # =============================================================================
 # A tool for analyzing VCS coverage data and generating JSON output
 # 
@@ -50,11 +50,13 @@ endif
 # Source files
 SRC_DIR = src
 VISIT_OBJ = $(BUILD_DIR)/visit.o
+BINVIS_SRC = $(SRC_DIR)/binvis.cc
 BINVIS_CPP_SRC = $(SRC_DIR)/binvis_cpp.cc
 VISIT_SRC = $(SRC_DIR)/visit.cc
 VISIT_HDR = $(SRC_DIR)/visit.hh
 
-# Executable
+# Executables
+BINVIS = $(BUILD_DIR)/binvis
 BINVIS_CPP = $(BUILD_DIR)/binvis_cpp
 
 # Simulation artifacts (all in build directory)
@@ -63,7 +65,8 @@ VDB = $(BUILD_DIR)/simv.vdb
 SIM_LOG = $(BUILD_DIR)/sim.log
 
 # Output files
-OUTPUT_LOG = $(BUILD_DIR)/binvis_cpp.log
+OUTPUT_LOG = $(BUILD_DIR)/binvis.log
+OUTPUT_CPP_LOG = $(BUILD_DIR)/binvis_cpp.log
 JSON_OUTPUT = $(BUILD_DIR)/coverage_output.json
 
 # =============================================================================
@@ -75,36 +78,45 @@ JSON_OUTPUT = $(BUILD_DIR)/coverage_output.json
 # Help target
 # =============================================================================
 help:
-	@echo "BinVis C++ - JSON Coverage Analysis Tool"
-	@echo "========================================="
+	@echo "BinVis - Coverage Analysis Tool"
+	@echo "================================"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  help          - Show this help message"
-	@echo "  build         - Build binvis_cpp (JSON output)"
+	@echo "  all           - Build both binvis and binvis_cpp"
+	@echo "  binvis        - Build original binvis (text output)"
+	@echo "  binvis_cpp    - Build binvis_cpp (JSON output)"
 	@echo "  test          - Compile and run simulation"
 	@echo "  json          - Generate JSON coverage output"
-	@echo "  run           - Run analysis and generate JSON output"
+	@echo "  compare       - Compare original vs C++ versions"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  clean-all     - Clean everything including simulation files"
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make DESIGN_FILE=examples/jukebox.v json"
-	@echo "  make DESIGN_FILE=examples/covergroup_showcase.sv run"
+	@echo "  make DESIGN_FILE=examples/covergroup_showcase.sv compare"
 	@echo ""
 
 # =============================================================================
 # Build targets
 # =============================================================================
 
-build: $(BINVIS_CPP)
+all: binvis binvis_cpp
 
-$(BINVIS_CPP): $(BINVIS_CPP_SRC) $(VISIT_OBJ)
+binvis: $(BINVIS)
+
+binvis_cpp: $(BINVIS_CPP)
+
+$(BINVIS): $(BINVIS_SRC) $(VISIT_OBJ) | $(BUILD_DIR)
+	@echo "Building binvis (original version)..."
+	g++ -g -I$(INC) -o $@ $(BINVIS_SRC) $(VISIT_OBJ) -ldl -lm -lpthread $(LIB) $(CFLAGS)
+
+$(BINVIS_CPP): $(BINVIS_CPP_SRC) $(VISIT_OBJ) | $(BUILD_DIR)
 	@echo "Building binvis_cpp (JSON version)..."
 	g++ -g -I$(INC) -o $@ $(BINVIS_CPP_SRC) $(VISIT_OBJ) -ldl -lm -lpthread $(LIB) $(CFLAGS)
 
-$(VISIT_OBJ): $(VISIT_SRC) $(VISIT_HDR)
+$(VISIT_OBJ): $(VISIT_SRC) $(VISIT_HDR) | $(BUILD_DIR)
 	@echo "Compiling visit.cc..."
-	@mkdir -p $(BUILD_DIR)
 	g++ -g -I$(INC) -c $(VISIT_SRC) -o $@ $(CFLAGS)
 
 $(BUILD_DIR):
@@ -128,15 +140,32 @@ test-cg: check_design_file | $(BUILD_DIR)
 # Analysis targets
 # =============================================================================
 
-run: build test
-	@echo "Running binvis_cpp analysis..."
-	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > binvis_cpp.log 2>&1
+run: binvis test
+	@echo "Running binvis analysis..."
+	cd $(BUILD_DIR) && ./binvis simv.vdb > binvis.log 2>&1
 	@echo "Output written to $(OUTPUT_LOG)"
 
-json: build test
+run-cpp: binvis_cpp test
+	@echo "Running binvis_cpp analysis..."
+	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > binvis_cpp.log 2>&1
+	@echo "Output written to $(OUTPUT_CPP_LOG)"
+
+json: binvis_cpp test
 	@echo "Generating JSON coverage output..."
 	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > coverage_output.json
 	@echo "JSON coverage data written to $(JSON_OUTPUT)"
+
+compare: binvis binvis_cpp test
+	@echo "Comparing original vs C++ versions..."
+	cd $(BUILD_DIR) && ./binvis simv.vdb > binvis_original.log 2>&1
+	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > binvis_cpp.log 2>&1
+	@echo "Comparing outputs..."
+	@if diff $(BUILD_DIR)/binvis_original.log $(BUILD_DIR)/binvis_cpp.log > /dev/null; then \
+		echo "SUCCESS: Outputs are identical!"; \
+	else \
+		echo "DIFFERENCES FOUND:"; \
+		diff $(BUILD_DIR)/binvis_original.log $(BUILD_DIR)/binvis_cpp.log | head -20; \
+	fi
 
 # =============================================================================
 # Utility targets
@@ -177,15 +206,16 @@ clean-all: clean clean-sim
 # =============================================================================
 
 debug: CFLAGS += -DDEBUG -g3
-debug: build
+debug: binvis_cpp
 	@echo "Built debug version of binvis_cpp"
 
-install: build
-	@echo "Installing binary..."
+install: binvis binvis_cpp
+	@echo "Installing binaries..."
 	@mkdir -p $(HOME)/bin
-	cp $(BINVIS_CPP) $(HOME)/bin/
+	cp $(BINVIS) $(BINVIS_CPP) $(HOME)/bin/
 
 # =============================================================================
 # Phony targets
 # =============================================================================
-.PHONY: help build test test-cg run json check_design_file show-config clean clean-sim clean-all debug install
+.PHONY: help all binvis binvis_cpp test test-cg run run-cpp json compare \
+        check_design_file show-config clean clean-sim clean-all debug install

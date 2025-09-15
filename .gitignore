@@ -3,3 +3,6 @@ keys/service-account-key-kpi.json
 __pycache__
 
 outdir
+
+**/coverage/binvis/build/
+
