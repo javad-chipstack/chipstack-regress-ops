@@ -1,6 +1,6 @@
-/// C++ version of binvis - iterates through all covergroup definitions
-/// and instances and displays coverage information for every bin.
-/// This version generates the same output as the original binvis.
+/// VDB2JSON - VDB Coverage Dumper
+/// Dumps VDB functional coverage data to JSON format.
+/// Extracts covergroup definitions, instances, and coverage information for every bin.
 
 #include "covdb_user.h"
 #include "visit.hh"
@@ -148,7 +148,7 @@ public:
     GroupVisCpp(covdbHandle design) : UcapiVisitor(design) {
         _warned = false;
         _jsonDoc.SetObject();
-        _jsonDoc.AddMember("coverageData", Value("binvis_output", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
+        _jsonDoc.AddMember("coverageData", Value("vdb2json_output", _jsonDoc.GetAllocator()), _jsonDoc.GetAllocator());
         _jsonDoc.AddMember("instances", Value(kArrayType), _jsonDoc.GetAllocator());
         _currentInstance = nullptr;
         _currentVariant = nullptr;

@@ -1,7 +1,7 @@
 # =============================================================================
-# BinVis C++ - JSON Coverage Analysis Tool
+# VDB2JSON - VDB Coverage Dumper
 # =============================================================================
-# A tool for analyzing VCS coverage data and generating JSON output
+# A tool for dumping VDB coverage data to JSON format
 # 
 # Directory Structure:
 #   src/          - Source code files
@@ -50,12 +50,12 @@ endif
 # Source files
 SRC_DIR = src
 VISIT_OBJ = $(BUILD_DIR)/visit.o
-BINVIS_CPP_SRC = $(SRC_DIR)/binvis_cpp.cc
+VDB2JSON_SRC = $(SRC_DIR)/vdb2json.cc
 VISIT_SRC = $(SRC_DIR)/visit.cc
 VISIT_HDR = $(SRC_DIR)/visit.hh
 
 # Executable
-BINVIS_CPP = $(BUILD_DIR)/binvis_cpp
+VDB2JSON = $(BUILD_DIR)/vdb2json
 
 # Output files
 JSON_OUTPUT = $(BUILD_DIR)/coverage_output.json
@@ -69,8 +69,8 @@ JSON_OUTPUT = $(BUILD_DIR)/coverage_output.json
 # Help target
 # =============================================================================
 help:
-	@echo "BinVis C++ - JSON Coverage Analysis Tool"
-	@echo "========================================="
+	@echo "VDB2JSON - VDB Coverage Dumper"
+	@echo "==============================="
 	@echo ""
 	@echo "Workflow: PRE-VDB → POST-VDB"
 	@echo "  PRE-VDB:  Build tools + Run simulation → Create VDB file"
@@ -79,7 +79,7 @@ help:
 	@echo "Available targets:"
 	@echo "  help          - Show this help message"
 	@echo "  config        - Show current configuration"
-	@echo "  build         - Build binvis_cpp executable (PRE-VDB)"
+	@echo "  build         - Build vdb2json executable (PRE-VDB)"
 	@echo "  sim           - Compile and run simulation to create VDB (PRE-VDB)"
 	@echo "  json          - Complete workflow: build + sim + analysis (PRE-VDB + POST-VDB)"
 	@echo "  json-from-vdb - Generate JSON from existing VDB file (POST-VDB only)"
@@ -113,11 +113,11 @@ config:
 # =============================================================================
 
 # Build the analysis tool
-build: $(BINVIS_CPP)
+build: $(VDB2JSON)
 
-$(BINVIS_CPP): $(BINVIS_CPP_SRC) $(VISIT_OBJ)
-	@echo "Building binvis_cpp (JSON version)..."
-	g++ -g -I$(INC) -o $@ $(BINVIS_CPP_SRC) $(VISIT_OBJ) -ldl -lm -lpthread $(LIB) $(CFLAGS)
+$(VDB2JSON): $(VDB2JSON_SRC) $(VISIT_OBJ)
+	@echo "Building vdb2json..."
+	g++ -g -I$(INC) -o $@ $(VDB2JSON_SRC) $(VISIT_OBJ) -ldl -lm -lpthread $(LIB) $(CFLAGS)
 
 $(VISIT_OBJ): $(VISIT_SRC) $(VISIT_HDR)
 	@echo "Compiling visit.cc..."
@@ -144,14 +144,14 @@ sim: check_design_file | $(BUILD_DIR)
 
 # Complete workflow: build tools, run simulation, generate JSON
 json: build sim
-	@echo "Generating JSON coverage output from simv.vdb..."
-	cd $(BUILD_DIR) && ./binvis_cpp simv.vdb > coverage_output.json
+	@echo "Dumping VDB coverage data to JSON from simv.vdb..."
+	cd $(BUILD_DIR) && ./vdb2json simv.vdb > coverage_output.json
 	@echo "JSON coverage data written to $(JSON_OUTPUT)"
 
 # Generate JSON from existing VDB file (skip simulation)
 json-from-vdb: build check_vdb_file
-	@echo "Generating JSON coverage output from existing VDB file: $(VDB_FILE)..."
-	cd $(BUILD_DIR) && ./binvis_cpp $(abspath $(VDB_FILE)) > coverage_output.json
+	@echo "Dumping VDB coverage data to JSON from existing VDB file: $(VDB_FILE)..."
+	cd $(BUILD_DIR) && ./vdb2json $(abspath $(VDB_FILE)) > coverage_output.json
 	@echo "JSON coverage data written to $(JSON_OUTPUT)"
 
 # Utility function for VDB file validation

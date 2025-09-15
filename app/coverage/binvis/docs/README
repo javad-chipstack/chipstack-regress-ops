@@ -1,14 +1,13 @@
-# BinVis C++ - JSON Coverage Analysis Tool
+# VDB2JSON - VDB Coverage Dumper
 
-A comprehensive tool for analyzing VCS coverage data and generating structured JSON output for SystemVerilog covergroups.
+A specialized tool for dumping VDB functional coverage data to JSON format. Extracts SystemVerilog covergroup definitions, instances, and coverage information from VCS VDB files.
 
 ## Directory Structure
 
 ```
-binvis/
+vdb2json/
 ├── src/                    # Source code
-│   ├── binvis.cc          # Original binvis (text output)
-│   ├── binvis_cpp.cc      # C++ version (JSON output)
+│   ├── vdb2json.cc        # Main VDB coverage dumper (JSON output)
 │   ├── visit.cc           # UCAPI visitor implementation
 │   └── visit.hh           # Visitor header
 ├── examples/              # Example SystemVerilog designs
@@ -25,13 +24,15 @@ binvis/
 
 ## Features
 
+- **VDB Dumping**: Extracts functional coverage data from VCS VDB files
 - **JSON Output**: Structured JSON format for easy integration with other tools
-- **Coverage Analysis**: Comprehensive analysis of SystemVerilog covergroups
+- **Covergroup Support**: Comprehensive support for SystemVerilog covergroups
 - **Cross Coverage**: Support for cross coverage analysis
 - **Transition Coverage**: State transition coverage analysis
 - **Conditional Coverage**: Conditional coverage analysis
 - **Hit Counts**: Detailed hit count information for each bin
 - **Modern Build System**: Clean, organized Makefile with helpful targets
+- **Focused Tool**: Specialized tool for VDB coverage data extraction
 
 ## Workflow
 
@@ -108,8 +109,8 @@ make clean
 
 ## Output Format
 
-### JSON Output (binvis_cpp)
-Structured JSON format with detailed coverage information:
+### JSON Output (vdb2json)
+Structured JSON format with detailed VDB coverage information:
 - **Instance information**: Module and instance details
 - **Covergroup variants**: Different covergroup instantiations
 - **Coverpoint details**: Individual coverpoint information
@@ -151,6 +152,9 @@ The JSON output is written to `build/coverage_output.json` and can be easily int
 
 ## Recent Changes
 
+- **Renamed to VDB2JSON**: More accurate name that clearly indicates VDB to JSON conversion
+- **Streamlined codebase**: Removed legacy binvis.cc and Makefile.full
+- **Focused purpose**: Specialized tool for dumping VDB functional coverage data
 - **Modernized Makefile**: Clean, organized build system with helpful targets
 - **Improved workflow**: Clear PRE-VDB → POST-VDB separation
 - **Enhanced error handling**: Better validation and user guidance
