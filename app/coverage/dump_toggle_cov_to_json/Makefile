@@ -38,8 +38,8 @@ endif
 
 VISIT = visit.o
 
-$(PGM): src/$(PGM).cc $(VISIT)
-	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cc build/$(VISIT)  -ldl -lm -lpthread -lnsl $(LIB) ${CFLAGS}
+$(PGM): src/$(PGM).cpp $(VISIT)
+	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cpp build/$(VISIT)  -ldl -lm -lpthread $(LIB) ${CFLAGS}
 
 $(VISIT) : src/visit.cc src/visit.hh
 	c++ -g -I$(INC) -c src/visit.cc -o build/visit.o ${CFLAGS}
@@ -51,7 +51,7 @@ run:
 	./build/simv -cm tgl -l build/run.log
 	[ -f ucli.key ] && mv ucli.key build/ || true
 	c++ -g -I$(INC) -c src/visit.cc -o build/visit.o ${CFLAGS}
-	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cc build/$(VISIT) -ldl -lm -lpthread  $(LIB)  ${CFLAGS}
+	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cpp build/$(VISIT) -ldl -lm -lpthread $(LIB) ${CFLAGS}
 	./build/dumptgl build/simv.vdb station > build/dump_tgl
 
 clean:

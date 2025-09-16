@@ -5,8 +5,9 @@
  *    CONFIDENTIAL AND PROPRIETARY INFORMATION OF SYNOPSYS INC.   *
  ******************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
 #include "covdb_user.h"
 #include "visit.hh"
 #include <map>
@@ -16,12 +17,12 @@ class DumpTgl : public UcapiVisitor {
     const char* _modname;
     bool _inmod;
     void indent(int depth) {
-        for(int i = 0; i < depth; i++) printf(" ");
+        for(int i = 0; i < depth; i++) std::cout << " ";
     }
 
     static void errorFilter(covdbHandle errHdl, void* data) {
         char* errstr = covdb_get_str(errHdl, covdbName);
-        fprintf(stderr, "Error occurred: %s\n", errstr);
+        std::cerr << "Error occurred: " << errstr << std::endl;
     }
 
 public:
@@ -51,18 +52,18 @@ public:
         if (!_inmod) return;
 
         const char* pnm = covdb_get_str(parent, covdbName);
-        printf("%s\t", pnm);
+        std::cout << pnm << "\t";
 
         const char* onm = covdb_get_str(obj, covdbName);
-        printf("(%s)\t", onm);
+        std::cout << "(" << onm << ")\t";
 
         int st = covdb_get(obj, region, getTest(), covdbCovStatus);
         if (st & covdbStatusCovered) {
-            printf("Covered\n");
+            std::cout << "Covered" << std::endl;
         } else if (st & covdbStatusExcluded) {
-            printf("Excluded\n");
+            std::cout << "Excluded" << std::endl;
         } else {
-            printf("Uncovered\n");
+            std::cout << "Uncovered" << std::endl;
         }
     }
 
@@ -72,29 +73,28 @@ public:
 int main(int argc, const char *argv[])
 {
     covdbHandle design;
-    int i;
 
     if (argc != 3) {
-        printf("Usage: %s vdbdir modname\n", argv[0]);
+        std::cout << "Usage: " << argv[0] << " vdbdir modname" << std::endl;
+        return 1;
     }
 
     const char* dir = argv[1];
     const char* mod = argv[2];
 
-    design = covdb_load(covdbDesign, NULL, dir);
+    design = covdb_load(covdbDesign, nullptr, dir);
     covdb_qualified_configure(design, covdbExcludeMode, "adaptive");
 
     if (!design) {
-        fprintf(stderr, "Error: you must specify at least one -dir\n");
-        exit(1);
+        std::cerr << "Error: you must specify at least one -dir" << std::endl;
+        return 1;
     } else {
         DumpTgl vis(design, mod);
 
-        printf("Dumping toggle objects and status for module '%s'\n", mod);
+        std::cout << "Dumping toggle objects and status for module '" << mod << "'" << std::endl;
         vis.execute();
         covdb_unload(design);
     }
 
     return 0;
 }
-
