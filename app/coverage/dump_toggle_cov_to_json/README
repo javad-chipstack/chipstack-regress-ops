@@ -1,0 +1,10 @@
+This is a simple UCAPI example that will dump out all leaf-level
+toggle coverage objects for a specified module. Dumped data is found in
+file dump_tgl
+
+Since this is a UCAPI program, you will need to compile it against
+your own VCS_HOME installation to use it.  To create the executable,
+just type "gmake" in this directory.
+
+To run the example:
+	Use Makefile
