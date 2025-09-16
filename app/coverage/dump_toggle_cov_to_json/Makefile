@@ -46,8 +46,8 @@ $(VISIT) : src/visit.cc src/visit.hh
 run:
 	rm -rf build/*
 	mkdir -p build
-	# vcs -lca -cm tgl -cm_tgl mda -sverilog src/jukebox.v -l build/compile.log
-	vcs -cm tgl -sverilog src/jukebox.v -l build/compile.log -o build/simv -Mdir=build/csrc
+	# vcs -lca -cm tgl -cm_tgl mda -sverilog designs/jukebox.v -l build/compile.log
+	vcs -cm tgl -sverilog designs/jukebox.v -l build/compile.log -o build/simv -Mdir=build/csrc
 	./build/simv -cm tgl -l build/run.log
 	c++ -g -I$(INC) -c src/visit.cc -o build/visit.o ${CFLAGS}
 	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cc build/$(VISIT) -ldl -lm -lpthread  $(LIB)  ${CFLAGS}
