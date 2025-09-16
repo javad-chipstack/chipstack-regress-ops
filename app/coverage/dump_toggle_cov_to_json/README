@@ -1,10 +1,140 @@
-This is a simple UCAPI example that will dump out all leaf-level
-toggle coverage objects for a specified module. Dumped data is found in
-file dump_tgl
+# Toggle Coverage Analysis Tool
 
-Since this is a UCAPI program, you will need to compile it against
-your own VCS_HOME installation to use it.  To create the executable,
-just type "gmake" in this directory.
+This is a C++ UCAPI example that dumps all leaf-level toggle coverage objects 
+for a specified module. The tool generates a comprehensive toggle coverage report
+showing which signal transitions are covered, uncovered, or excluded.
 
-To run the example:
-	Use Makefile
+## Features
+
+- **Modern C++ Implementation** - Uses C++11 with proper I/O streams and error handling
+- **Parameterized Design Support** - Works with any Verilog/SystemVerilog design
+- **Module-Specific Analysis** - Focus on specific modules within your design
+- **Comprehensive Reports** - Detailed toggle coverage data in text format
+
+## Requirements
+
+- VCS (Synopsys) with UCAPI support
+- C++11 compatible compiler
+- VCS_HOME environment variable set
+
+## Quick Start
+
+```bash
+# Build and run with default settings
+make run
+
+# View available options
+make help
+```
+
+## Usage
+
+### Basic Usage
+```bash
+# Run with default design (jukebox.v) and module (station)
+make run
+
+# Run with custom module
+make run MODULE_NAME=test_jukebox
+
+# Run with custom design file
+make run DESIGN_FILE=designs/my_design.v
+
+# Run with both custom design and module
+make run DESIGN_FILE=designs/my_design.v MODULE_NAME=my_module
+```
+
+### Available Targets
+```bash
+make help                    # Show all available options
+make run                     # Default: jukebox.v, station module
+make run-jukebox            # Explicit: jukebox.v, station module
+make clean                  # Clean build directory
+```
+
+### Parameters
+
+- **DESIGN_FILE**: Path to your Verilog/SystemVerilog design file
+  - Default: `designs/jukebox.v`
+  - Example: `designs/my_design.v`
+
+- **MODULE_NAME**: Name of the module to analyze
+  - Default: `station`
+  - Must match a module name in your design
+  - Examples: `station`, `test_jukebox`, `cd`, `jukebox`
+
+## Output
+
+The tool generates `build/tgl_report.txt` containing:
+```
+Dumping toggle objects and status for module 'station'
+trki[0]	(0 -> 1)	Covered
+trki[0]	(1 -> 0)	Uncovered
+trki[1]	(0 -> 1)	Covered
+...
+```
+
+## Examples
+
+### Analyze Different Modules
+```bash
+# Analyze the station module (default)
+make run MODULE_NAME=station
+
+# Analyze the testbench
+make run MODULE_NAME=test_jukebox
+
+# Analyze the CD player module
+make run MODULE_NAME=cd
+```
+
+### Use Your Own Design
+```bash
+# Place your design in designs/ directory
+cp my_design.v designs/
+
+# Analyze your design
+make run DESIGN_FILE=designs/my_design.v MODULE_NAME=my_top_module
+```
+
+## Build Process
+
+The tool performs these steps:
+1. **Compile Design** - VCS compiles your Verilog/SystemVerilog design
+2. **Run Simulation** - Executes the design with toggle coverage enabled
+3. **Generate Coverage Database** - Creates VCS coverage database
+4. **Analyze Coverage** - C++ tool extracts toggle coverage data
+5. **Generate Report** - Creates `tgl_report.txt` with results
+
+## File Structure
+
+```
+dump_toggle_cov_to_json/
+├── designs/
+│   └── jukebox.v              # Example design
+├── src/
+│   ├── dumptgl.cpp           # Main C++ analysis tool
+│   ├── visit.cc              # UCAPI visitor base class
+│   └── visit.hh              # UCAPI visitor header
+├── build/                    # Generated files (created during build)
+│   └── tgl_report.txt        # Coverage report output
+├── Makefile                  # Build configuration
+└── README                    # This file
+```
+
+## Troubleshooting
+
+### No Coverage Data
+- Ensure the module name exists in your design
+- Check that toggle coverage is enabled in VCS simulation
+- Verify the module has signals that can toggle
+
+### Build Errors
+- Ensure VCS_HOME is set correctly
+- Check that you have a C++11 compatible compiler
+- Verify VCS UCAPI libraries are available
+
+### Wrong Module
+- Use `make help` to see available options
+- Check your design file for correct module names
+- Try different module names to find coverage data
