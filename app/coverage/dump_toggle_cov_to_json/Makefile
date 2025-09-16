@@ -47,14 +47,13 @@ run:
 	rm -rf build/*
 	mkdir -p build
 	# vcs -lca -cm tgl -cm_tgl mda -sverilog designs/jukebox.v -l build/compile.log
-	vcs -cm tgl -sverilog designs/jukebox.v -l build/compile.log -o build/simv -Mdir=build/csrc
+	vcs -cm tgl -sverilog designs/jukebox.v -l build/compile.log -o build/simv -Mdir=build/csrc -cm_log build/cm.log
 	./build/simv -cm tgl -l build/run.log
+	[ -f ucli.key ] && mv ucli.key build/ || true
 	c++ -g -I$(INC) -c src/visit.cc -o build/visit.o ${CFLAGS}
 	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cc build/$(VISIT) -ldl -lm -lpthread  $(LIB)  ${CFLAGS}
 	./build/dumptgl build/simv.vdb station > build/dump_tgl
 
 clean:
-	rm -rf build/*
-	rm -rf csrc
-	rm -f simv cm.log ucli.key *.o *Report 
+	rm -rf build
 
