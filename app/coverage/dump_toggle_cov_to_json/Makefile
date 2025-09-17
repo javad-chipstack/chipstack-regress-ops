@@ -56,7 +56,7 @@ run:
 	[ -f ucli.key ] && mv ucli.key build/ || true
 	c++ -g -I$(INC) -c src/visit.cc -o build/visit.o ${CFLAGS}
 	c++ -g -I$(INC) -o build/$(PGM) src/$(PGM).cpp build/$(VISIT) -ldl -lm -lpthread $(LIB) ${CFLAGS}
-	./build/dumptgl build/simv.vdb $(MODULE_NAME) > build/tgl_report.txt
+	./build/dumptgl build/simv.vdb $(MODULE_NAME) > build/toggle_report.json
 
 help:
 	@echo "Available targets:"

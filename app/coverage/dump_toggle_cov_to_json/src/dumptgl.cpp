@@ -20,6 +20,7 @@
 
 struct ToggleData {
     std::string signal_name;
+    std::string hdl_signal_path;
     std::string toggle_type;
     std::string status;
 };
@@ -29,6 +30,7 @@ class DumpTgl : public UcapiVisitor {
     bool _inmod;
     std::vector<ToggleData> _toggle_data;
     std::string _current_instance;
+    std::vector<std::string> _instance_hierarchy;
     
     void indent(int depth) {
         for(int i = 0; i < depth; i++) std::cout << " ";
@@ -58,13 +60,34 @@ public:
         _inmod = false;
     }
 
+    virtual void startQualifiedInstance(covdbHandle inst, covdbHandle met) {
+        const char* inst_name = covdb_get_str(inst, covdbName);
+        if (inst_name && strlen(inst_name) > 0) {
+            _current_instance = inst_name;
+            _instance_hierarchy.push_back(inst_name);
+        }
+    }
+
+    virtual void finishQualifiedInstance(covdbHandle inst, covdbHandle met) {
+        if (!_instance_hierarchy.empty()) {
+            _instance_hierarchy.pop_back();
+        }
+        _current_instance = _instance_hierarchy.empty() ? "" : _instance_hierarchy.back();
+    }
+
     virtual void startInstance(covdbHandle inst) {
         const char* inst_name = covdb_get_str(inst, covdbName);
-        _current_instance = inst_name ? inst_name : "";
+        if (inst_name && strlen(inst_name) > 0) {
+            _current_instance = inst_name;
+            _instance_hierarchy.push_back(inst_name);
+        }
     }
 
     virtual void finishInstance(covdbHandle inst) {
-        _current_instance = "";
+        if (!_instance_hierarchy.empty()) {
+            _instance_hierarchy.pop_back();
+        }
+        _current_instance = _instance_hierarchy.empty() ? "" : _instance_hierarchy.back();
     }
 
     virtual void visitCovObject(covdbHandle obj,
@@ -87,23 +110,36 @@ public:
             status = "Uncovered";
         }
 
-        // Let me try a completely different approach
-        // Maybe I need to look at the object hierarchy differently
+        // Extract signal name and build HDL signal path
         std::string signal_name = "unknown";
+        std::string hdl_signal_path = "";
         
         // Try to get the full name of the object
         const char* obj_full_name = covdb_get_str(obj, covdbFullName);
         const char* parent_full_name = covdb_get_str(parent, covdbFullName);
+        const char* region_name = covdb_get_str(region, covdbName);
+        const char* region_full_name = covdb_get_str(region, covdbFullName);
         
         // Use the full name for the signal name - this gives us the correct signal names
         if (parent_full_name && strlen(parent_full_name) > 0) {
             signal_name = parent_full_name;
+            hdl_signal_path = parent_full_name;
+        } else if (obj_full_name && strlen(obj_full_name) > 0) {
+            signal_name = obj_full_name;
+            hdl_signal_path = obj_full_name;
         } else {
             signal_name = pnm ? pnm : "unknown";
+            hdl_signal_path = signal_name;
+        }
+        
+        // Use region information to build HDL signal path
+        if (region_name && strlen(region_name) > 0) {
+            hdl_signal_path = std::string(region_name) + "." + signal_name;
         }
         
         ToggleData data;
         data.signal_name = signal_name;
+        data.hdl_signal_path = hdl_signal_path;
         // Since both onm and obj_full_name are giving signal names, let me try a different approach
         // For now, let me try to construct the toggle type from the pattern
         // The original shows alternating "0 -> 1" and "1 -> 0" patterns
@@ -134,11 +170,11 @@ public:
         for (const auto& data : _toggle_data) {
             rapidjson::Value toggle_obj(rapidjson::kObjectType);
             
-            rapidjson::Value signal_name(data.signal_name.c_str(), allocator);
+            rapidjson::Value hdl_signal_path(data.hdl_signal_path.c_str(), allocator);
             rapidjson::Value toggle_type(data.toggle_type.c_str(), allocator);
             rapidjson::Value status(data.status.c_str(), allocator);
             
-            toggle_obj.AddMember("signal_name", signal_name, allocator);
+            toggle_obj.AddMember("hdl_signal_path", hdl_signal_path, allocator);
             toggle_obj.AddMember("toggle_type", toggle_type, allocator);
             toggle_obj.AddMember("status", status, allocator);
             
