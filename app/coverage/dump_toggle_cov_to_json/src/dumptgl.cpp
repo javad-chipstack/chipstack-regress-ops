@@ -25,10 +25,14 @@ struct ToggleData {
     std::string status;
 };
 
+struct ModuleData {
+    std::string module_name;
+    std::vector<ToggleData> toggle_data;
+};
+
 class DumpTgl : public UcapiVisitor {
-    const char* _modname;
-    bool _inmod;
-    std::vector<ToggleData> _toggle_data;
+    std::map<std::string, ModuleData> _modules_data;
+    std::string _current_module;
     std::string _current_instance;
     std::vector<std::string> _instance_hierarchy;
     
@@ -42,8 +46,8 @@ class DumpTgl : public UcapiVisitor {
     }
 
 public:
-    DumpTgl(covdbHandle design, const char* mod)
-            : UcapiVisitor(design), _modname(mod), _inmod(false)
+    DumpTgl(covdbHandle design)
+            : UcapiVisitor(design)
     {
         setErrorCallback(errorFilter);
     }
@@ -52,12 +56,17 @@ public:
     /// Visited for every metric-qualified definition (variant) in the design
     virtual void startVariant(covdbHandle var, covdbHandle met) {
         const char* mn = covdb_get_str(var, covdbName);
-        if (!strcmp(mn, _modname)) {
-            _inmod = true;
+        if (mn && strlen(mn) > 0) {
+            _current_module = mn;
+            // Initialize module data if it doesn't exist
+            if (_modules_data.find(_current_module) == _modules_data.end()) {
+                _modules_data[_current_module] = ModuleData();
+                _modules_data[_current_module].module_name = _current_module;
+            }
         }
     }
     virtual void finishVariant(covdbHandle var, covdbHandle met) {
-        _inmod = false;
+        _current_module = "";
     }
 
     virtual void startQualifiedInstance(covdbHandle inst, covdbHandle met) {
@@ -95,7 +104,7 @@ public:
                              covdbHandle metric,
                              covdbHandle parent)
     {
-        if (!_inmod) return;
+        if (_current_module.empty()) return;
 
         const char* pnm = covdb_get_str(parent, covdbName);
         const char* onm = covdb_get_str(obj, covdbName);
@@ -144,7 +153,7 @@ public:
         // For now, let me try to construct the toggle type from the pattern
         // The original shows alternating "0 -> 1" and "1 -> 0" patterns
         std::string toggle_type;
-        if (_toggle_data.size() % 2 == 0) {
+        if (_modules_data[_current_module].toggle_data.size() % 2 == 0) {
             toggle_type = "0 -> 1";
         } else {
             toggle_type = "1 -> 0";
@@ -152,7 +161,7 @@ public:
         
         data.toggle_type = toggle_type;
         data.status = status;
-        _toggle_data.push_back(data);
+        _modules_data[_current_module].toggle_data.push_back(data);
     }
 
     void outputJson() {
@@ -160,28 +169,40 @@ public:
         document.SetObject();
         rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-        // Add module name
-        rapidjson::Value module_name(_modname, allocator);
-        document.AddMember("module", module_name, allocator);
-
-        // Add toggle data array
-        rapidjson::Value toggle_array(rapidjson::kArrayType);
+        // Add modules array
+        rapidjson::Value modules_array(rapidjson::kArrayType);
         
-        for (const auto& data : _toggle_data) {
-            rapidjson::Value toggle_obj(rapidjson::kObjectType);
+        for (const auto& module_pair : _modules_data) {
+            const ModuleData& module_data = module_pair.second;
             
-            rapidjson::Value hdl_signal_path(data.hdl_signal_path.c_str(), allocator);
-            rapidjson::Value toggle_type(data.toggle_type.c_str(), allocator);
-            rapidjson::Value status(data.status.c_str(), allocator);
+            rapidjson::Value module_obj(rapidjson::kObjectType);
             
-            toggle_obj.AddMember("hdl_signal_path", hdl_signal_path, allocator);
-            toggle_obj.AddMember("toggle_type", toggle_type, allocator);
-            toggle_obj.AddMember("status", status, allocator);
+            // Add module name
+            rapidjson::Value module_name(module_data.module_name.c_str(), allocator);
+            module_obj.AddMember("module", module_name, allocator);
             
-            toggle_array.PushBack(toggle_obj, allocator);
+            // Add toggle data array for this module
+            rapidjson::Value toggle_array(rapidjson::kArrayType);
+            
+            for (const auto& data : module_data.toggle_data) {
+                rapidjson::Value toggle_obj(rapidjson::kObjectType);
+                
+                rapidjson::Value hdl_signal_path(data.hdl_signal_path.c_str(), allocator);
+                rapidjson::Value toggle_type(data.toggle_type.c_str(), allocator);
+                rapidjson::Value status(data.status.c_str(), allocator);
+                
+                toggle_obj.AddMember("hdl_signal_path", hdl_signal_path, allocator);
+                toggle_obj.AddMember("toggle_type", toggle_type, allocator);
+                toggle_obj.AddMember("status", status, allocator);
+                
+                toggle_array.PushBack(toggle_obj, allocator);
+            }
+            
+            module_obj.AddMember("toggle_coverage", toggle_array, allocator);
+            modules_array.PushBack(module_obj, allocator);
         }
         
-        document.AddMember("toggle_coverage", toggle_array, allocator);
+        document.AddMember("modules", modules_array, allocator);
 
         // Output pretty JSON
         rapidjson::StringBuffer buffer;
@@ -198,13 +219,12 @@ int main(int argc, const char *argv[])
 {
     covdbHandle design;
 
-    if (argc != 3) {
-        std::cout << "Usage: " << argv[0] << " vdbdir modname" << std::endl;
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " vdbdir" << std::endl;
         return 1;
     }
 
     const char* dir = argv[1];
-    const char* mod = argv[2];
 
     design = covdb_load(covdbDesign, nullptr, dir);
     covdb_qualified_configure(design, covdbExcludeMode, "adaptive");
@@ -213,7 +233,7 @@ int main(int argc, const char *argv[])
         std::cerr << "Error: you must specify at least one -dir" << std::endl;
         return 1;
     } else {
-        DumpTgl vis(design, mod);
+        DumpTgl vis(design);
 
         vis.execute();
         vis.outputJson();

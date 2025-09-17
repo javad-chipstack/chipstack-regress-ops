@@ -32,7 +32,6 @@ SRC_DIR    := src
 
 # Design parameters (overridable)
 DESIGN_FILE ?= designs/jukebox.v
-MODULE_NAME ?= station
 
 # UCAPI library/include detection
 ifneq ($(wildcard $(VCS_HOME)/$(plat)/lib/libucapi.a),)
@@ -60,11 +59,11 @@ $(VISIT_OBJ): $(VISIT_SRC) $(VISIT_HDR) | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir -p $@
 
+
 # Simulation + coverage run
 .PHONY: run
-
 run: $(PGM_BIN)
-	@echo ">>> Running simulation with design: $(DESIGN_FILE), module: $(MODULE_NAME)"
+	@echo ">>> Running simulation with design: $(DESIGN_FILE) (all modules)"
 	rm -rf $(BUILD_DIR)/simv* $(BUILD_DIR)/csrc $(BUILD_DIR)/*.log $(BUILD_DIR)/*.vdb $(BUILD_DIR)/html
 	mkdir -p $(BUILD_DIR)
 	vcs -cm tgl -sverilog $(DESIGN_FILE) \
@@ -74,15 +73,27 @@ run: $(PGM_BIN)
 	    -cm_log $(BUILD_DIR)/cm.log
 	./$(BUILD_DIR)/simv -cm tgl -l $(BUILD_DIR)/run.log
 	[ -f ucli.key ] && mv ucli.key $(BUILD_DIR)/ || true
-	./$(PGM_BIN) $(BUILD_DIR)/simv.vdb $(MODULE_NAME) > $(BUILD_DIR)/toggle_report.json
+	./$(PGM_BIN) $(BUILD_DIR)/simv.vdb > $(BUILD_DIR)/toggle_report.json
+
+# VDB marker file to track simulation completion
+$(BUILD_DIR)/simv.vdb/.vdb_ready: $(PGM_BIN)
+	@echo "[INFO] VDB not found, running simulation first..."
+	@$(MAKE) run DESIGN_FILE=$(DESIGN_FILE)
+	@touch $@
 
 # Generate HTML coverage report
 .PHONY: html
-html:
-	@echo ">>> Generating HTML coverage report using urg..."
-	mkdir -p $(BUILD_DIR)/html
-	urg -dir $(BUILD_DIR)/simv.vdb -report $(BUILD_DIR)/html -format both -full64
-	@echo ">>> HTML report available in $(BUILD_DIR)/html"
+html: $(BUILD_DIR)/simv.vdb/.vdb_ready
+	@echo "[INFO] Generating HTML coverage report using urg..."
+	@mkdir -p $(BUILD_DIR)/html
+	@urg -dir $(BUILD_DIR)/simv.vdb -report $(BUILD_DIR)/html -format both -full64
+	@if [ -d $(BUILD_DIR)/html ]; then \
+		echo "[INFO] HTML report generated"; \
+	else \
+		echo "[ERROR] HTML report not generated"; \
+		exit 1; \
+	fi
+	
 
 # Cleanup
 .PHONY: clean
@@ -93,12 +104,11 @@ clean:
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  run                   - Run with default design (jukebox.v, station module)"
-	@echo "  run DESIGN_FILE=... MODULE_NAME=... - Run with custom params"
+	@echo "  run                   - Run with default design (jukebox.v, all modules)"
+	@echo "  run DESIGN_FILE=...   - Run with custom design file"
 	@echo "  html                  - Generate HTML coverage report"
 	@echo "  clean                 - Clean build directory"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make run DESIGN_FILE=designs/jukebox.v MODULE_NAME=station"
-	@echo "  make run DESIGN_FILE=designs/soc_register_hierarchy.sv MODULE_NAME=tb_toggle_coverage"
-	@echo "  make run MODULE_NAME=testbench"
+	@echo "  make run DESIGN_FILE=designs/jukebox.v"
+	@echo "  make run DESIGN_FILE=designs/soc_register_hierarchy.sv"

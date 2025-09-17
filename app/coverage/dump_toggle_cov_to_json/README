@@ -1,12 +1,12 @@
 # Toggle Coverage Analysis Tool
 
-C++ UCAPI tool that dumps toggle coverage for Verilog/SystemVerilog modules, generating JSON and HTML reports.
+C++ UCAPI tool that dumps toggle coverage for all Verilog/SystemVerilog modules in a design, generating JSON and HTML reports.
 
 ## Quick Start
 
 ```bash
-make run                    # Run with defaults
-make run MODULE_NAME=cd     # Custom module
+make run                    # Run with defaults (all modules)
+make run DESIGN_FILE=designs/soc_register_hierarchy.sv  # Custom design
 make html                   # Generate HTML report
 ```
 
@@ -22,7 +22,6 @@ make html                   # Generate HTML report
 ### Parameters
 
 - `DESIGN_FILE`: Path to Verilog design (default: `designs/jukebox.v`)
-- `MODULE_NAME`: Module to analyze (default: `station`)
 
 ## Output
 
@@ -34,10 +33,21 @@ Files generated in `build/`:
 ### JSON Format
 ```json
 {
-  "module": "station",
-  "signals": [
-    { "name": "trki[0]", "transition": "0->1", "status": "Covered" },
-    { "name": "trki[0]", "transition": "1->0", "status": "Uncovered" }
+  "modules": [
+    {
+      "module": "station",
+      "toggle_coverage": [
+        { "hdl_signal_path": "trki[0]", "toggle_type": "0 -> 1", "status": "Covered" },
+        { "hdl_signal_path": "trki[0]", "toggle_type": "1 -> 0", "status": "Uncovered" }
+      ]
+    },
+    {
+      "module": "cd",
+      "toggle_coverage": [
+        { "hdl_signal_path": "clk", "toggle_type": "0 -> 1", "status": "Covered" },
+        { "hdl_signal_path": "clk", "toggle_type": "1 -> 0", "status": "Covered" }
+      ]
+    }
   ]
 }
 ```
@@ -51,9 +61,9 @@ Files generated in `build/`:
 ## Troubleshooting
 
 **No coverage data:**
-- Verify module exists: `grep -n "module your_module" your_design.v`
+- Verify modules exist: `grep -n "module" your_design.v`
 - Check VCS coverage settings
-- Ensure module has signals (not just parameters)
+- Ensure modules have signals (not just parameters)
 
 **Build errors:**
 - Check `VCS_HOME`: `echo $VCS_HOME`
